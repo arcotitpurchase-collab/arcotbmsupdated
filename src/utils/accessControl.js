@@ -20,10 +20,15 @@ const includesId = (values, id) =>
   asStrings(values).includes(normalizeId(id));
 
 export const isSuperAdmin = (account) =>
-  account?.systemRole === SYSTEM_ROLES.SUPER_ADMIN;
+  account?.systemRole === SYSTEM_ROLES.SUPER_ADMIN ||
+  account?.role === SYSTEM_ROLES.SUPER_ADMIN;
 
 export const isAdmin = (account) =>
-  account?.systemRole === SYSTEM_ROLES.ADMIN;
+  account?.systemRole === SYSTEM_ROLES.ADMIN ||
+  account?.role === SYSTEM_ROLES.ADMIN;
+
+export const canInteractWithInternalFlow = (account) =>
+  isSuperAdmin(account) || isAdmin(account);
 
 const hasFullProjectAccess = (account) =>
   isSuperAdmin(account) || isAdmin(account);
@@ -50,9 +55,9 @@ const getAssignedZones = (account) => {
 
 export const hasPermission = (account, permission) => {
   if (!account) return false;
-  if (isSuperAdmin(account)) return true;
+  if (isSuperAdmin(account) || isAdmin(account)) return true;
   if (
-    (isAdmin(account) || account.systemRole === SYSTEM_ROLES.USER) &&
+    account.systemRole === SYSTEM_ROLES.USER &&
     STANDARD_MONITORING_PERMISSIONS.has(permission)
   ) {
     return true;
@@ -90,6 +95,8 @@ export const canAccessBuilding = (account, buildingId) => {
     (zone) => normalizeId(zone.buildingId) === normalizeId(buildingId)
   );
 };
+
+export const canAccessWing = canAccessBuilding;
 
 export const canAccessBlock = (account, blockId) => {
   if (!account || !blockId || !getBlockById(blockId)) return false;
@@ -194,7 +201,7 @@ export const validateRouteAccess = (account, routeType, resourceId) => {
 export const resolveAccountLandingRoute = (account) => {
   if (!account) return "/auth";
   if (account.systemRole === SYSTEM_ROLES.SUPER_ADMIN) return "/super-admin";
-  if (account.systemRole === SYSTEM_ROLES.ADMIN) return "/admin/dashboard";
+  if (account.systemRole === SYSTEM_ROLES.ADMIN) return "/dashboard";
   return "/dashboard";
 };
 

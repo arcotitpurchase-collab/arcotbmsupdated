@@ -166,7 +166,7 @@ export const createSession = (account) => {
 export const getLandingRoute = (account) => {
   const routes = {
     [SYSTEM_ROLES.SUPER_ADMIN]: "/super-admin",
-    [SYSTEM_ROLES.ADMIN]: "/admin/dashboard",
+    [SYSTEM_ROLES.ADMIN]: "/dashboard",
     [SYSTEM_ROLES.USER]: "/dashboard",
   };
 

@@ -13777,10 +13777,11 @@ import {
 import aiLogo from "../assets/AI LOGO.png";
 import prestigeLogo from "../assets/ser-removebg.png";
 import { tempApi } from "../tempAdminApi";
-import { USER_PERMISSIONS } from "../data/permissionOptions";
+import { SYSTEM_ROLES, USER_PERMISSIONS } from "../data/permissionOptions";
 import { buildings } from "../data/bmsData";
 import {
-  canAccessBuilding,
+  canInteractWithInternalFlow,
+  canAccessWing,
   hasPermission as accountHasPermission,
 } from "../utils/accessControl";
 import {
@@ -13815,11 +13816,23 @@ const [openedBusbars, setOpenedBusbars] = useState([]);
 const navigate = useNavigate();
 
   const currentUser = tempApi.getCurrentAccount();
+  const canInteractWithFlow = canInteractWithInternalFlow(currentUser);
+  const isAdminAccount = currentUser?.systemRole === SYSTEM_ROLES.ADMIN;
+
+  useEffect(() => {
+    if (!canInteractWithFlow && activePopup && activePopup !== "buildings") {
+      setActivePopup(null);
+    }
+  }, [activePopup, canInteractWithFlow, currentUser?.id]);
 
   const hasPermission = (permission) =>
     accountHasPermission(currentUser, permission);
 
   const openPermittedPopup = (permission, popupName) => {
+    if (!canInteractWithFlow) {
+      return;
+    }
+
     if (!hasPermission(permission)) {
       navigate("/unauthorized", { replace: true });
       return;
@@ -22363,7 +22376,7 @@ const BuildingsPopup = () => {
           </svg>
 
 {buildings.map((building, index) => {
-  const locked = !canAccessBuilding(currentUser, building.id);
+  const locked = !canAccessWing(currentUser, building.id);
 
   return (
   <div
@@ -22439,7 +22452,11 @@ const BuildingsPopup = () => {
     </div>
 
     {/* ACTIONS — SAME HEIGHT AND SAME WIDTH */}
-    <div className="grid shrink-0 grid-cols-4 gap-3">
+    <div
+      className={`grid shrink-0 gap-3 ${
+        isAdminAccount ? "grid-cols-5" : "grid-cols-4"
+      }`}
+    >
       <button
         type="button"
         onClick={() => navigate("/overview")}
@@ -22447,6 +22464,16 @@ const BuildingsPopup = () => {
       >
         Overview
       </button>
+
+      {isAdminAccount && (
+        <button
+          type="button"
+          onClick={() => navigate("/admin/dashboard")}
+          className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#1CC8F0] bg-[#0750A3] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(0,0,0,0.16)] transition hover:bg-[#0862C4]"
+        >
+          PROFILE
+        </button>
+      )}
 
       <div className="flex h-[44px] w-[168px] items-center justify-center gap-2 rounded-[4px] border border-[#176BB7] bg-[#04183D] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
         <Bluetooth className="h-4 w-4 text-emerald-400" strokeWidth={2.2} />
@@ -22493,11 +22520,14 @@ const BuildingsPopup = () => {
         subtitle="2 Incoming / 1 Outgoing"
         icon={<UtilityPole className="h-7 w-7" strokeWidth={1.8} />}
         accent="#00D9FF"
-        onClick={() =>
-          openPermittedPopup(
-            USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-            "source"
-          )
+        onClick={
+          canInteractWithFlow
+            ? () =>
+                openPermittedPopup(
+                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
+                  "source"
+                )
+            : undefined
         }
       />
 
@@ -22508,11 +22538,14 @@ const BuildingsPopup = () => {
         subtitle="1 Incoming / 6 Outgoing"
         icon={<Network className="h-7 w-7" strokeWidth={1.8} />}
         accent="#FFD000"
-        onClick={() =>
-          openPermittedPopup(
-            USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-            "feeders"
-          )
+        onClick={
+          canInteractWithFlow
+            ? () =>
+                openPermittedPopup(
+                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
+                  "feeders"
+                )
+            : undefined
         }
       />
 
@@ -22523,11 +22556,14 @@ const BuildingsPopup = () => {
         subtitle="33kV / 433V"
         icon={<Factory className="h-7 w-7" strokeWidth={1.8} />}
         accent="#A56AF2"
-        onClick={() =>
-          openPermittedPopup(
-            USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-            "transformers"
-          )
+        onClick={
+          canInteractWithFlow
+            ? () =>
+                openPermittedPopup(
+                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
+                  "transformers"
+                )
+            : undefined
         }
       />
 
@@ -22538,7 +22574,7 @@ const BuildingsPopup = () => {
         subtitle="433V Panel"
         icon={<PanelsTopLeft className="h-7 w-7" strokeWidth={1.8} />}
         accent="#00D9FF"
-        onClick={() => setActivePopup("kiosks")}
+        onClick={canInteractWithFlow ? () => setActivePopup("kiosks") : undefined}
       />
     </div>
 
@@ -22584,7 +22620,7 @@ const BuildingsPopup = () => {
         subtitle="LT Busduct Distribution"
         icon={<Grid2X2 className="h-7 w-7" strokeWidth={1.8} />}
         accent="#FF3BA5"
-        onClick={() => setActivePopup("busbars")}
+        onClick={canInteractWithFlow ? () => setActivePopup("busbars") : undefined}
       />
 
       <FlowLineH />
@@ -22594,7 +22630,7 @@ const BuildingsPopup = () => {
         subtitle="Wing 1 + Wing 2"
         icon={<PanelsTopLeft className="h-7 w-7" strokeWidth={1.8} />}
         accent="#FF9800"
-        onClick={() => setActivePopup("pccMain")}
+        onClick={canInteractWithFlow ? () => setActivePopup("pccMain") : undefined}
       />
 
       <FlowLineH />
@@ -22604,7 +22640,7 @@ const BuildingsPopup = () => {
         subtitle="Vertical Distribution"
         icon={<TowerControl className="h-7 w-7" strokeWidth={1.8} />}
         accent="#1CA8FF"
-        onClick={() => setActivePopup("raisingMain")}
+        onClick={canInteractWithFlow ? () => setActivePopup("raisingMain") : undefined}
       />
 
       <FlowLineH />
@@ -22665,7 +22701,7 @@ const BuildingsPopup = () => {
           </svg>
         }
         accent="#F7B731"
-        onClick={() => setActivePopup("dg")}
+        onClick={canInteractWithFlow ? () => setActivePopup("dg") : undefined}
       />
 
       <FlowLineH />
@@ -22712,36 +22748,25 @@ const BuildingsPopup = () => {
   </div>
 </section>
 
-      {activePopup === "source" && <SourcePopup />}
-      {activePopup === "feeders" && <FeederPopup />}
-      {activePopup === "transformers" && <TransformersPopup />}
-      {activePopup === "kiosks" && <KioskPopup />}
-      {activePopup === "dg" && <DgPopup />}
-      {activePopup === "busbars" && <BusbarPopup />}
-      {activePopup === "pccMain" && <PCCMainPopup />}
-{activePopup === "pccMain" && (
-  <PCCMainPopup />
+{canInteractWithFlow && (
+  <>
+    {activePopup === "source" && <SourcePopup />}
+    {activePopup === "feeders" && <FeederPopup />}
+    {activePopup === "transformers" && <TransformersPopup />}
+    {activePopup === "kiosks" && <KioskPopup />}
+    {activePopup === "dg" && <DgPopup />}
+    {activePopup === "busbars" && <BusbarPopup />}
+    {activePopup === "pccMain" && <PCCMainPopup />}
+    {activePopup === "pcc1" && <Pcc1Popup />}
+    {activePopup === "pcc2" && <Pcc2Popup />}
+    {activePopup === "pcc3" && <Pcc3Popup />}
+    {activePopup === "pcc4" && <Pcc4Popup />}
+    {activePopup === "raisingMain" && <RaisingMainPopup />}
+    {activePopup === "overview" && <OverviewPopup />}
+  </>
 )}
 
-{activePopup === "pcc1" && (
-  <Pcc1Popup />
-)}
-
-{activePopup === "pcc2" && (
-  <Pcc2Popup />
-)}
-
-{activePopup === "pcc3" && (
-  <Pcc3Popup />
-)}
-
-{activePopup === "pcc4" && (
-  <Pcc4Popup />
-)}
-{activePopup === "raisingMain" && <RaisingMainPopup />}
 {activePopup === "buildings" && <BuildingsPopup />}
-
-{activePopup === "overview" && <OverviewPopup />}
 
 
 

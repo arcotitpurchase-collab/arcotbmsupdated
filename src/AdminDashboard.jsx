@@ -861,10 +861,503 @@ function PasswordDialog({ result, onClose }) {
   );
 }
 
+// export default function AdminDashboard() {
+//   const { currentUser, logout } = useAuth();
+//   const navigate = useNavigate();
+//   const { userId } = useParams();
+//   const [users, setUsers] = React.useState([]);
+//   const [summary, setSummary] = React.useState(() =>
+//     getAdminDashboardSummary(currentUser)
+//   );
+//   const [formState, setFormState] = React.useState(null);
+//   const [selectedUser, setSelectedUser] = React.useState(null);
+//   const [confirmation, setConfirmation] = React.useState(null);
+//   const [passwordResult, setPasswordResult] = React.useState(null);
+//   const [showDeleted, setShowDeleted] = React.useState(true);
+//   const [notice, setNotice] = React.useState("");
+
+//   const currentAdmin = currentUser;
+
+//   const refresh = React.useCallback(() => {
+//     if (!currentAdmin) return;
+
+//     setUsers(
+//       getUsersForAdmin(currentAdmin.id, {
+//         includeDeleted: showDeleted,
+//       })
+//     );
+//     setSummary(getAdminDashboardSummary(currentAdmin));
+
+//     if (userId) {
+//       setSelectedUser(
+//         getUserByIdForAdmin(currentAdmin.id, userId)
+//       );
+//     }
+//   }, [currentAdmin, showDeleted, userId]);
+
+//   React.useEffect(() => {
+//     refresh();
+//   }, [refresh]);
+
+//   React.useEffect(() => {
+//     if (!userId || !currentAdmin) return;
+
+//     const routeUser = getUserByIdForAdmin(currentAdmin.id, userId);
+
+//     if (!routeUser) {
+//       navigate("/access-denied", { replace: true });
+//       return;
+//     }
+
+//     setSelectedUser(routeUser);
+//   }, [currentAdmin, navigate, userId]);
+
+//   const can = (permission) =>
+//     currentAdmin?.systemRole === SYSTEM_ROLES.ADMIN ||
+//     currentAdmin?.permissions?.includes(permission);
+
+//   const closeDetails = () => {
+//     setSelectedUser(null);
+//     if (userId) navigate("/admin/dashboard", { replace: true });
+//   };
+
+//   const openDetails = (user) => {
+//     setSelectedUser(getUserByIdForAdmin(currentAdmin.id, user.id));
+//     navigate(`/admin/users/${user.id}`);
+//   };
+
+//   const openAddUser = () => {
+//     if (userId) {
+//       navigate("/admin/dashboard", { replace: true });
+//     }
+
+//     setNotice("");
+//     setPasswordResult(null);
+//     setFormState({
+//       mode: "create",
+//       key: `create-${Date.now()}`,
+//       value: createInitialUserForm(),
+//     });
+//     setSelectedUser(null);
+//   };
+
+//   const openEdit = (user) => {
+//     setNotice("");
+//     setPasswordResult(null);
+//     setFormState({
+//       mode: "edit",
+//       key: `edit-${user.id}-${Date.now()}`,
+//       value: createEditUserForm(user),
+//     });
+//   };
+
+//   const closeUserModal = () => {
+//     setSelectedUser(null);
+//     setFormState(null);
+//     setNotice("");
+//     setPasswordResult(null);
+//     if (userId) {
+//       navigate("/admin/dashboard", { replace: true });
+//     }
+//   };
+
+//   const runAction = (title, message, action) => {
+//     setConfirmation({
+//       title,
+//       message,
+//       onConfirm: () => {
+//         action();
+//         setConfirmation(null);
+//         refresh();
+//       },
+//     });
+//   };
+
+//   const handleResetPassword = (user) => {
+//     runAction(
+//       "Reset User password",
+//       `Generate a new temporary password for ${user.name}? The previous password will stop working.`,
+//       () => {
+//         const result = resetUserPassword(currentAdmin, user.id);
+//         if (result.success) {
+//           setPasswordResult(result);
+//           setNotice("Temporary password generated.");
+//         }
+//       }
+//     );
+//   };
+
+//   const handleLogout = () => {
+//     logout();
+//     navigate("/auth", { replace: true });
+//   };
+
+//   return (
+//     <main className="min-h-screen bg-[#020B24] p-4 text-white sm:p-5 lg:p-6">
+//       <div className="mx-auto max-w-[1800px]">
+//         <header className="mb-5 border border-white/10 bg-white/[0.05] px-5 py-4">
+//           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+//             <div className="min-w-0">
+//               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
+//                 ARCOT IIoT · Admin Dashboard
+//               </p>
+//               <h1 className="mt-1 text-xl font-semibold sm:text-2xl">
+//                 User Access Management
+//               </h1>
+//               <p className="mt-1 text-xs text-slate-400">
+//                 Create and manage Users within your assigned BMS scope.
+//               </p>
+//             </div>
+
+//             <div className="flex flex-wrap items-center gap-3">
+//               <button
+//                 type="button"
+//                 onClick={() => navigate("/dashboard")}
+//                 className="h-10 border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-200"
+//               >
+//                 Dashboard
+//               </button>
+             
+            
+//               <div className="border border-white/10 bg-[#06184A] px-4 py-2">
+//                 <p className="text-[9px] uppercase tracking-[0.13em] text-slate-500">
+//                   Signed in as
+//                 </p>
+//                 <p className="mt-0.5 text-sm font-medium text-cyan-200">
+//                   {currentAdmin?.name || currentAdmin?.adminName}
+//                 </p>
+//               </div>
+//               {can(ADMIN_PERMISSIONS.USER_CREATE) && (
+//                 <button
+//                   type="button"
+//                   onClick={openAddUser}
+//                   className="h-10 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24]"
+//                 >
+//                   Add User
+//                 </button>
+//               )}
+//               <button
+//                 type="button"
+//                 onClick={handleLogout}
+//                 className="h-10 border border-red-400/40 px-4 text-sm font-semibold text-red-300"
+//               >
+//                 Logout
+//               </button>
+//             </div>
+//           </div>
+//         </header>
+
+//         {notice && (
+//           <div className="mb-5 border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+//             {notice}
+//           </div>
+//         )}
+
+//         <section className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-9">
+//           <SummaryCard title="Total Users" value={summary.totalUsers} />
+//           <SummaryCard title="Active" value={summary.activeUsers} />
+//           <SummaryCard title="Disabled" value={summary.disabledUsers} />
+//           <SummaryCard title="Deleted" value={summary.deletedUsers} />
+//           <SummaryCard title="Clients" value={summary.assignedClients} />
+//           <SummaryCard title="Blocks" value={summary.assignedBlocks} />
+//           <SummaryCard title="Floors" value={summary.assignedFloors} />
+//           <SummaryCard
+//             title="Consumption"
+//             value={`${formatNumber(summary.scopedConsumption)} kWh`}
+//           />
+//           <SummaryCard
+//             title="Charges"
+//             value={formatCurrency(summary.scopedCharges)}
+//             accent
+//           />
+//         </section>
+
+//         <section className="border border-white/10 bg-white/[0.05]">
+//           <div className="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+//             <div>
+//               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
+//                 Users
+//               </p>
+//               <h2 className="mt-1 text-lg font-semibold">
+//                 Assigned User Accounts
+//               </h2>
+//             </div>
+//             <label className="flex items-center gap-2 text-xs text-slate-300">
+//               <input
+//                 type="checkbox"
+//                 checked={showDeleted}
+//                 onChange={(event) =>
+//                   setShowDeleted(event.target.checked)
+//                 }
+//               />
+//               Show deleted Users
+//             </label>
+//           </div>
+
+//           <div className="overflow-x-auto">
+//             <table className="min-w-[1500px] w-full text-left text-xs">
+//               <thead className="bg-white/[0.03] text-slate-400">
+//                 <tr>
+//                   {[
+//                     "Name",
+//                     "Email",
+//                     "Status",
+//                     "Client",
+//                     "Building",
+//                     "Block",
+//                     "Floors",
+//                     "Permissions",
+//                     "Consumption",
+//                     "Charges",
+//                     "Created",
+//                     "Last Login",
+//                     "Actions",
+//                   ].map((heading) => (
+//                     <th key={heading} className="px-4 py-3 font-medium">
+//                       {heading}
+//                     </th>
+//                   ))}
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {users.map((user) => (
+//                   <tr
+//                     key={user.id}
+//                     className="border-t border-white/5 align-top"
+//                   >
+//                     <td className="px-4 py-3 font-medium text-white">
+//                       {user.name}
+//                     </td>
+//                     <td className="px-4 py-3 text-blue-200">
+//                       {user.email}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       <StatusBadge user={user} />
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {user.scopeLabels.clients[0] || "-"}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {user.scopeLabels.buildings[0] || "-"}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {user.scopeLabels.blocks[0] || "-"}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {user.assignedFloorIds.length}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {user.permissions.length}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {formatNumber(user.consumption)} kWh
+//                     </td>
+//                     <td className="px-4 py-3 text-cyan-300">
+//                       {formatCurrency(user.charges)}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {formatDate(user.createdAt)}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       {formatDate(user.lastLoginAt)}
+//                     </td>
+//                     <td className="px-4 py-3">
+//                       <div className="flex flex-wrap gap-2">
+//                         {can(ADMIN_PERMISSIONS.USER_VIEW) && (
+//                           <button
+//                             type="button"
+//                             onClick={() => openDetails(user)}
+//                             className="border border-cyan-400/40 px-2 py-1 text-[11px] font-semibold text-cyan-300"
+//                           >
+//                             View Details
+//                           </button>
+//                         )}
+//                         {!isDeleted(user) &&
+//                           can(ADMIN_PERMISSIONS.USER_EDIT) && (
+//                             <button
+//                               type="button"
+//                               onClick={() => openEdit(user)}
+//                               className="border border-white/15 px-2 py-1 text-[11px] font-semibold text-slate-300"
+//                             >
+//                               Edit
+//                             </button>
+//                           )}
+//                         {!isDeleted(user) &&
+//                           can(
+//                             ADMIN_PERMISSIONS.USER_ENABLE_DISABLE
+//                           ) && (
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 runAction(
+//                                   user.isActive === false
+//                                     ? "Enable User"
+//                                     : "Disable User",
+//                                   `${user.isActive === false ? "Enable" : "Disable"} ${user.name}?`,
+//                                   () => {
+//                                     setUserStatus(
+//                                       currentAdmin,
+//                                       user.id,
+//                                       user.isActive === false
+//                                     );
+//                                     setNotice("User status updated.");
+//                                   }
+//                                 )
+//                               }
+//                               className="border border-amber-400/40 px-2 py-1 text-[11px] font-semibold text-amber-300"
+//                             >
+//                               {user.isActive === false
+//                                 ? "Enable"
+//                                 : "Disable"}
+//                             </button>
+//                           )}
+//                         {!isDeleted(user) &&
+//                           can(
+//                             ADMIN_PERMISSIONS.USER_PASSWORD_RESET
+//                           ) && (
+//                             <button
+//                               type="button"
+//                               onClick={() => handleResetPassword(user)}
+//                               className="border border-cyan-400/40 px-2 py-1 text-[11px] font-semibold text-cyan-300"
+//                             >
+//                               Reset Password
+//                             </button>
+//                           )}
+//                         {!isDeleted(user) ? (
+//                           can(ADMIN_PERMISSIONS.USER_DELETE) && (
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 runAction(
+//                                   "Delete User",
+//                                   `Soft-delete ${user.name}? Assignments and history will be preserved.`,
+//                                   () => {
+//                                     softDeleteUser(currentAdmin, user.id);
+//                                     setNotice("User soft-deleted.");
+//                                   }
+//                                 )
+//                               }
+//                               className="border border-red-400/40 px-2 py-1 text-[11px] font-semibold text-red-300"
+//                             >
+//                               Delete
+//                             </button>
+//                           )
+//                         ) : (
+//                           can(ADMIN_PERMISSIONS.USER_DELETE) && (
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 runAction(
+//                                   "Restore User",
+//                                   `Restore ${user.name}? The account will remain disabled until you enable it.`,
+//                                   () => {
+//                                     restoreUser(currentAdmin, user.id);
+//                                     setNotice("User restored as disabled.");
+//                                   }
+//                                 )
+//                               }
+//                               className="border border-emerald-400/40 px-2 py-1 text-[11px] font-semibold text-emerald-300"
+//                             >
+//                               Restore
+//                             </button>
+//                           )
+//                         )}
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           {users.length === 0 && (
+//             <p className="px-5 py-8 text-center text-sm text-slate-400">
+//               No Users exist for this Admin yet.
+//             </p>
+//           )}
+//         </section>
+//       </div>
+
+//       {formState && (
+//         <UserFormModal
+//           key={formState.key}
+//           mode={formState.mode}
+//           currentAdmin={currentAdmin}
+//           initialValue={formState.value}
+//           onCancel={closeUserModal}
+//           onSaved={(user) => {
+//             closeUserModal();
+//             refresh();
+//             setNotice(
+//               formState.mode === "edit"
+//                 ? "User updated successfully."
+//                 : "User created successfully."
+//             );
+//             if (formState.mode === "edit") {
+//               setSelectedUser(
+//                 getUserByIdForAdmin(currentAdmin.id, user.id)
+//               );
+//             }
+//           }}
+//         />
+//       )}
+
+//       {selectedUser && (
+//         <DetailsModal
+//           user={selectedUser}
+//           currentAdmin={currentAdmin}
+//           onClose={closeDetails}
+//           onEdit={openEdit}
+//           onResetPassword={handleResetPassword}
+//           onStatus={(user) =>
+//             runAction(
+//               user.isActive === false ? "Enable User" : "Disable User",
+//               `${user.isActive === false ? "Enable" : "Disable"} ${user.name}?`,
+//               () => {
+//                 setUserStatus(
+//                   currentAdmin,
+//                   user.id,
+//                   user.isActive === false
+//                 );
+//                 setNotice("User status updated.");
+//               }
+//             )
+//           }
+//           onDelete={(user) =>
+//             runAction(
+//               "Delete User",
+//               `Soft-delete ${user.name}? Assignments and history will be preserved.`,
+//               () => {
+//                 softDeleteUser(currentAdmin, user.id);
+//                 setNotice("User soft-deleted.");
+//                 closeDetails();
+//               }
+//             )
+//           }
+//         />
+//       )}
+
+//       <ConfirmDialog
+//         confirmation={confirmation}
+//         onCancel={() => setConfirmation(null)}
+//       />
+//       <PasswordDialog
+//         result={passwordResult}
+//         onClose={() => {
+//           setPasswordResult(null);
+//           refresh();
+//         }}
+//       />
+//     </main>
+//   );
+// }
+
+
 export default function AdminDashboard() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams();
+
   const [users, setUsers] = React.useState([]);
   const [summary, setSummary] = React.useState(() =>
     getAdminDashboardSummary(currentUser)
@@ -886,6 +1379,7 @@ export default function AdminDashboard() {
         includeDeleted: showDeleted,
       })
     );
+
     setSummary(getAdminDashboardSummary(currentAdmin));
 
     if (userId) {
@@ -902,10 +1396,15 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     if (!userId || !currentAdmin) return;
 
-    const routeUser = getUserByIdForAdmin(currentAdmin.id, userId);
+    const routeUser = getUserByIdForAdmin(
+      currentAdmin.id,
+      userId
+    );
 
     if (!routeUser) {
-      navigate("/access-denied", { replace: true });
+      navigate("/access-denied", {
+        replace: true,
+      });
       return;
     }
 
@@ -913,36 +1412,51 @@ export default function AdminDashboard() {
   }, [currentAdmin, navigate, userId]);
 
   const can = (permission) =>
+    currentAdmin?.systemRole === SYSTEM_ROLES.ADMIN ||
     currentAdmin?.permissions?.includes(permission);
 
   const closeDetails = () => {
     setSelectedUser(null);
-    if (userId) navigate("/admin/dashboard", { replace: true });
+
+    if (userId) {
+      navigate("/admin/dashboard", {
+        replace: true,
+      });
+    }
   };
 
   const openDetails = (user) => {
-    setSelectedUser(getUserByIdForAdmin(currentAdmin.id, user.id));
+    const userDetails = getUserByIdForAdmin(
+      currentAdmin.id,
+      user.id
+    );
+
+    setSelectedUser(userDetails);
     navigate(`/admin/users/${user.id}`);
   };
 
   const openAddUser = () => {
     if (userId) {
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/admin/dashboard", {
+        replace: true,
+      });
     }
 
     setNotice("");
     setPasswordResult(null);
+    setSelectedUser(null);
+
     setFormState({
       mode: "create",
       key: `create-${Date.now()}`,
       value: createInitialUserForm(),
     });
-    setSelectedUser(null);
   };
 
   const openEdit = (user) => {
     setNotice("");
     setPasswordResult(null);
+
     setFormState({
       mode: "edit",
       key: `edit-${user.id}-${Date.now()}`,
@@ -955,8 +1469,11 @@ export default function AdminDashboard() {
     setFormState(null);
     setNotice("");
     setPasswordResult(null);
+
     if (userId) {
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/admin/dashboard", {
+        replace: true,
+      });
     }
   };
 
@@ -977,7 +1494,11 @@ export default function AdminDashboard() {
       "Reset User password",
       `Generate a new temporary password for ${user.name}? The previous password will stop working.`,
       () => {
-        const result = resetUserPassword(currentAdmin, user.id);
+        const result = resetUserPassword(
+          currentAdmin,
+          user.id
+        );
+
         if (result.success) {
           setPasswordResult(result);
           setNotice("Temporary password generated.");
@@ -988,48 +1509,73 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     logout();
-    navigate("/auth", { replace: true });
+
+    navigate("/auth", {
+      replace: true,
+    });
   };
+
+  const headerButtonBase =
+    "flex h-10 min-w-[132px] items-center justify-center whitespace-nowrap border px-4 text-sm font-semibold transition-colors duration-200";
+
+  const tableButtonBase =
+    "flex h-8 min-w-[106px] items-center justify-center whitespace-nowrap border px-3 text-[11px] font-semibold transition-colors duration-200";
 
   return (
     <main className="min-h-screen bg-[#020B24] p-4 text-white sm:p-5 lg:p-6">
-      <div className="mx-auto max-w-[1800px]">
+      <div className="mx-auto w-full max-w-[1800px]">
         <header className="mb-5 border border-white/10 bg-white/[0.05] px-5 py-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
                 ARCOT IIoT · Admin Dashboard
               </p>
+
               <h1 className="mt-1 text-xl font-semibold sm:text-2xl">
                 User Access Management
               </h1>
+
               <p className="mt-1 text-xs text-slate-400">
-                Create and manage Users within your assigned BMS scope.
+                Create and manage Users within your assigned
+                BMS scope.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="border border-white/10 bg-[#06184A] px-4 py-2">
-                <p className="text-[9px] uppercase tracking-[0.13em] text-slate-500">
+            <div className="flex w-full flex-wrap items-center gap-3 xl:w-auto xl:justify-end">
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className={`${headerButtonBase} border-cyan-400/40 text-cyan-200 hover:border-cyan-300 hover:bg-cyan-400/10 hover:text-cyan-100`}
+              >
+                Dashboard
+              </button>
+
+              <div className="flex h-10 min-w-[190px] max-w-[240px] flex-col justify-center border border-white/10 bg-[#06184A] px-4">
+                <p className="text-[9px] font-medium uppercase tracking-[0.13em] text-slate-500">
                   Signed in as
                 </p>
-                <p className="mt-0.5 text-sm font-medium text-cyan-200">
-                  {currentAdmin?.name || currentAdmin?.adminName}
+
+                <p className="truncate text-sm font-medium text-cyan-200">
+                  {currentAdmin?.name ||
+                    currentAdmin?.adminName ||
+                    "Administrator"}
                 </p>
               </div>
+
               {can(ADMIN_PERMISSIONS.USER_CREATE) && (
                 <button
                   type="button"
                   onClick={openAddUser}
-                  className="h-10 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24]"
+                  className={`${headerButtonBase} border-cyan-400 bg-cyan-400 text-[#020B24] hover:border-cyan-300 hover:bg-cyan-300`}
                 >
                   Add User
                 </button>
               )}
+
               <button
                 type="button"
                 onClick={handleLogout}
-                className="h-10 border border-red-400/40 px-4 text-sm font-semibold text-red-300"
+                className={`${headerButtonBase} border-red-400/40 text-red-300 hover:border-red-300 hover:bg-red-400/10 hover:text-red-200`}
               >
                 Logout
               </button>
@@ -1043,18 +1589,49 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <section className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-9">
-          <SummaryCard title="Total Users" value={summary.totalUsers} />
-          <SummaryCard title="Active" value={summary.activeUsers} />
-          <SummaryCard title="Disabled" value={summary.disabledUsers} />
-          <SummaryCard title="Deleted" value={summary.deletedUsers} />
-          <SummaryCard title="Clients" value={summary.assignedClients} />
-          <SummaryCard title="Blocks" value={summary.assignedBlocks} />
-          <SummaryCard title="Floors" value={summary.assignedFloors} />
+        <section className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-9">
+          <SummaryCard
+            title="Total Users"
+            value={summary.totalUsers}
+          />
+
+          <SummaryCard
+            title="Active"
+            value={summary.activeUsers}
+          />
+
+          <SummaryCard
+            title="Disabled"
+            value={summary.disabledUsers}
+          />
+
+          <SummaryCard
+            title="Deleted"
+            value={summary.deletedUsers}
+          />
+
+          <SummaryCard
+            title="Clients"
+            value={summary.assignedClients}
+          />
+
+          <SummaryCard
+            title="Blocks"
+            value={summary.assignedBlocks}
+          />
+
+          <SummaryCard
+            title="Floors"
+            value={summary.assignedFloors}
+          />
+
           <SummaryCard
             title="Consumption"
-            value={`${formatNumber(summary.scopedConsumption)} kWh`}
+            value={`${formatNumber(
+              summary.scopedConsumption
+            )} kWh`}
           />
+
           <SummaryCard
             title="Charges"
             value={formatCurrency(summary.scopedCharges)}
@@ -1068,110 +1645,189 @@ export default function AdminDashboard() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
                 Users
               </p>
+
               <h2 className="mt-1 text-lg font-semibold">
                 Assigned User Accounts
               </h2>
             </div>
-            <label className="flex items-center gap-2 text-xs text-slate-300">
+
+            <label className="flex min-h-10 items-center gap-2 text-xs text-slate-300">
               <input
                 type="checkbox"
                 checked={showDeleted}
                 onChange={(event) =>
                   setShowDeleted(event.target.checked)
                 }
+                className="h-4 w-4 accent-cyan-400"
               />
-              Show deleted Users
+
+              <span>Show deleted Users</span>
             </label>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-[1500px] w-full text-left text-xs">
+            <table className="w-full min-w-[1600px] table-fixed text-left text-xs">
               <thead className="bg-white/[0.03] text-slate-400">
                 <tr>
-                  {[
-                    "Name",
-                    "Email",
-                    "Status",
-                    "Client",
-                    "Building",
-                    "Block",
-                    "Floors",
-                    "Permissions",
-                    "Consumption",
-                    "Charges",
-                    "Created",
-                    "Last Login",
-                    "Actions",
-                  ].map((heading) => (
-                    <th key={heading} className="px-4 py-3 font-medium">
-                      {heading}
-                    </th>
-                  ))}
+                  <th className="w-[140px] px-4 py-3 font-medium">
+                    Name
+                  </th>
+
+                  <th className="w-[200px] px-4 py-3 font-medium">
+                    Email
+                  </th>
+
+                  <th className="w-[110px] px-4 py-3 font-medium">
+                    Status
+                  </th>
+
+                  <th className="w-[130px] px-4 py-3 font-medium">
+                    Client
+                  </th>
+
+                  <th className="w-[130px] px-4 py-3 font-medium">
+                    Building
+                  </th>
+
+                  <th className="w-[120px] px-4 py-3 font-medium">
+                    Block
+                  </th>
+
+                  <th className="w-[90px] px-4 py-3 text-center font-medium">
+                    Floors
+                  </th>
+
+                  <th className="w-[110px] px-4 py-3 text-center font-medium">
+                    Permissions
+                  </th>
+
+                  <th className="w-[130px] px-4 py-3 font-medium">
+                    Consumption
+                  </th>
+
+                  <th className="w-[120px] px-4 py-3 font-medium">
+                    Charges
+                  </th>
+
+                  <th className="w-[125px] px-4 py-3 font-medium">
+                    Created
+                  </th>
+
+                  <th className="w-[125px] px-4 py-3 font-medium">
+                    Last Login
+                  </th>
+
+                  <th className="w-[370px] px-4 py-3 font-medium">
+                    Actions
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {users.map((user) => (
                   <tr
                     key={user.id}
-                    className="border-t border-white/5 align-top"
+                    className="border-t border-white/5 align-middle transition-colors hover:bg-white/[0.02]"
                   >
                     <td className="px-4 py-3 font-medium text-white">
-                      {user.name}
+                      <p className="truncate" title={user.name}>
+                        {user.name}
+                      </p>
                     </td>
+
                     <td className="px-4 py-3 text-blue-200">
-                      {user.email}
+                      <p className="truncate" title={user.email}>
+                        {user.email}
+                      </p>
                     </td>
+
                     <td className="px-4 py-3">
                       <StatusBadge user={user} />
                     </td>
+
                     <td className="px-4 py-3">
-                      {user.scopeLabels.clients[0] || "-"}
+                      <p
+                        className="truncate"
+                        title={
+                          user.scopeLabels?.clients?.[0] || "-"
+                        }
+                      >
+                        {user.scopeLabels?.clients?.[0] || "-"}
+                      </p>
                     </td>
+
                     <td className="px-4 py-3">
-                      {user.scopeLabels.buildings[0] || "-"}
+                      <p
+                        className="truncate"
+                        title={
+                          user.scopeLabels?.buildings?.[0] || "-"
+                        }
+                      >
+                        {user.scopeLabels?.buildings?.[0] ||
+                          "-"}
+                      </p>
                     </td>
+
                     <td className="px-4 py-3">
-                      {user.scopeLabels.blocks[0] || "-"}
+                      <p
+                        className="truncate"
+                        title={
+                          user.scopeLabels?.blocks?.[0] || "-"
+                        }
+                      >
+                        {user.scopeLabels?.blocks?.[0] || "-"}
+                      </p>
                     </td>
-                    <td className="px-4 py-3">
-                      {user.assignedFloorIds.length}
+
+                    <td className="px-4 py-3 text-center">
+                      {user.assignedFloorIds?.length || 0}
                     </td>
-                    <td className="px-4 py-3">
-                      {user.permissions.length}
+
+                    <td className="px-4 py-3 text-center">
+                      {user.permissions?.length || 0}
                     </td>
+
                     <td className="px-4 py-3">
                       {formatNumber(user.consumption)} kWh
                     </td>
+
                     <td className="px-4 py-3 text-cyan-300">
                       {formatCurrency(user.charges)}
                     </td>
+
                     <td className="px-4 py-3">
                       {formatDate(user.createdAt)}
                     </td>
+
                     <td className="px-4 py-3">
                       {formatDate(user.lastLoginAt)}
                     </td>
+
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {can(ADMIN_PERMISSIONS.USER_VIEW) && (
                           <button
                             type="button"
                             onClick={() => openDetails(user)}
-                            className="border border-cyan-400/40 px-2 py-1 text-[11px] font-semibold text-cyan-300"
+                            className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
                           >
                             View Details
                           </button>
                         )}
+
                         {!isDeleted(user) &&
-                          can(ADMIN_PERMISSIONS.USER_EDIT) && (
+                          can(
+                            ADMIN_PERMISSIONS.USER_EDIT
+                          ) && (
                             <button
                               type="button"
                               onClick={() => openEdit(user)}
-                              className="border border-white/15 px-2 py-1 text-[11px] font-semibold text-slate-300"
+                              className={`${tableButtonBase} border-white/15 text-slate-300 hover:border-white/30 hover:bg-white/5 hover:text-white`}
                             >
                               Edit
                             </button>
                           )}
+
                         {!isDeleted(user) &&
                           can(
                             ADMIN_PERMISSIONS.USER_ENABLE_DISABLE
@@ -1183,38 +1839,51 @@ export default function AdminDashboard() {
                                   user.isActive === false
                                     ? "Enable User"
                                     : "Disable User",
-                                  `${user.isActive === false ? "Enable" : "Disable"} ${user.name}?`,
+                                  `${
+                                    user.isActive === false
+                                      ? "Enable"
+                                      : "Disable"
+                                  } ${user.name}?`,
                                   () => {
                                     setUserStatus(
                                       currentAdmin,
                                       user.id,
                                       user.isActive === false
                                     );
-                                    setNotice("User status updated.");
+
+                                    setNotice(
+                                      "User status updated."
+                                    );
                                   }
                                 )
                               }
-                              className="border border-amber-400/40 px-2 py-1 text-[11px] font-semibold text-amber-300"
+                              className={`${tableButtonBase} border-amber-400/40 text-amber-300 hover:border-amber-300 hover:bg-amber-400/10`}
                             >
                               {user.isActive === false
                                 ? "Enable"
                                 : "Disable"}
                             </button>
                           )}
+
                         {!isDeleted(user) &&
                           can(
                             ADMIN_PERMISSIONS.USER_PASSWORD_RESET
                           ) && (
                             <button
                               type="button"
-                              onClick={() => handleResetPassword(user)}
-                              className="border border-cyan-400/40 px-2 py-1 text-[11px] font-semibold text-cyan-300"
+                              onClick={() =>
+                                handleResetPassword(user)
+                              }
+                              className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
                             >
                               Reset Password
                             </button>
                           )}
+
                         {!isDeleted(user) ? (
-                          can(ADMIN_PERMISSIONS.USER_DELETE) && (
+                          can(
+                            ADMIN_PERMISSIONS.USER_DELETE
+                          ) && (
                             <button
                               type="button"
                               onClick={() =>
@@ -1222,18 +1891,26 @@ export default function AdminDashboard() {
                                   "Delete User",
                                   `Soft-delete ${user.name}? Assignments and history will be preserved.`,
                                   () => {
-                                    softDeleteUser(currentAdmin, user.id);
-                                    setNotice("User soft-deleted.");
+                                    softDeleteUser(
+                                      currentAdmin,
+                                      user.id
+                                    );
+
+                                    setNotice(
+                                      "User soft-deleted."
+                                    );
                                   }
                                 )
                               }
-                              className="border border-red-400/40 px-2 py-1 text-[11px] font-semibold text-red-300"
+                              className={`${tableButtonBase} border-red-400/40 text-red-300 hover:border-red-300 hover:bg-red-400/10`}
                             >
                               Delete
                             </button>
                           )
                         ) : (
-                          can(ADMIN_PERMISSIONS.USER_DELETE) && (
+                          can(
+                            ADMIN_PERMISSIONS.USER_DELETE
+                          ) && (
                             <button
                               type="button"
                               onClick={() =>
@@ -1241,12 +1918,18 @@ export default function AdminDashboard() {
                                   "Restore User",
                                   `Restore ${user.name}? The account will remain disabled until you enable it.`,
                                   () => {
-                                    restoreUser(currentAdmin, user.id);
-                                    setNotice("User restored as disabled.");
+                                    restoreUser(
+                                      currentAdmin,
+                                      user.id
+                                    );
+
+                                    setNotice(
+                                      "User restored as disabled."
+                                    );
                                   }
                                 )
                               }
-                              className="border border-emerald-400/40 px-2 py-1 text-[11px] font-semibold text-emerald-300"
+                              className={`${tableButtonBase} border-emerald-400/40 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-400/10`}
                             >
                               Restore
                             </button>
@@ -1276,16 +1959,23 @@ export default function AdminDashboard() {
           initialValue={formState.value}
           onCancel={closeUserModal}
           onSaved={(user) => {
+            const savedMode = formState.mode;
+
             closeUserModal();
             refresh();
+
             setNotice(
-              formState.mode === "edit"
+              savedMode === "edit"
                 ? "User updated successfully."
                 : "User created successfully."
             );
-            if (formState.mode === "edit") {
+
+            if (savedMode === "edit") {
               setSelectedUser(
-                getUserByIdForAdmin(currentAdmin.id, user.id)
+                getUserByIdForAdmin(
+                  currentAdmin.id,
+                  user.id
+                )
               );
             }
           }}
@@ -1301,14 +1991,21 @@ export default function AdminDashboard() {
           onResetPassword={handleResetPassword}
           onStatus={(user) =>
             runAction(
-              user.isActive === false ? "Enable User" : "Disable User",
-              `${user.isActive === false ? "Enable" : "Disable"} ${user.name}?`,
+              user.isActive === false
+                ? "Enable User"
+                : "Disable User",
+              `${
+                user.isActive === false
+                  ? "Enable"
+                  : "Disable"
+              } ${user.name}?`,
               () => {
                 setUserStatus(
                   currentAdmin,
                   user.id,
                   user.isActive === false
                 );
+
                 setNotice("User status updated.");
               }
             )
@@ -1331,6 +2028,7 @@ export default function AdminDashboard() {
         confirmation={confirmation}
         onCancel={() => setConfirmation(null)}
       />
+
       <PasswordDialog
         result={passwordResult}
         onClose={() => {
