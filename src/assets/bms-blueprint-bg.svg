@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06131F"/>
+      <stop offset="48%" stop-color="#0A2235"/>
+      <stop offset="100%" stop-color="#071823"/>
+    </linearGradient>
+
+    <radialGradient id="glowA" cx="0.18" cy="0.12" r="0.55">
+      <stop offset="0%" stop-color="#1E6E91" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#1E6E91" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="glowB" cx="0.82" cy="0.18" r="0.48">
+      <stop offset="0%" stop-color="#A98444" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#A98444" stop-opacity="0"/>
+    </radialGradient>
+
+    <pattern id="minorGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#8FB8CA" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+
+    <pattern id="majorGrid" width="240" height="240" patternUnits="userSpaceOnUse">
+      <path d="M240 0H0V240" fill="none" stroke="#8FB8CA" stroke-opacity="0.055" stroke-width="1.2"/>
+    </pattern>
+
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+
+    <filter id="tinyGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+
+    <style>
+      .line{fill:none;stroke:#8CC6D8;stroke-opacity:.16;stroke-width:2}
+      .line2{fill:none;stroke:#D9B56B;stroke-opacity:.11;stroke-width:2}
+      .node{fill:#0C2A3C;stroke:#93C9D9;stroke-opacity:.22;stroke-width:1.5}
+      .label{fill:#A7C2CF;fill-opacity:.22;font-family:Arial,sans-serif;font-size:15px;letter-spacing:2px}
+      .small{fill:#A7C2CF;fill-opacity:.16;font-family:Arial,sans-serif;font-size:11px;letter-spacing:1.5px}
+    </style>
+  </defs>
+
+  <!-- Base -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#glowA)"/>
+  <rect width="1920" height="1080" fill="url(#glowB)"/>
+  <rect width="1920" height="1080" fill="url(#minorGrid)"/>
+  <rect width="1920" height="1080" fill="url(#majorGrid)"/>
+
+  <!-- Soft ambient strokes -->
+  <g opacity="0.12" filter="url(#softGlow)">
+    <path d="M120 210H380V310H650V210H930V310H1210V210H1490V310H1800"
+          stroke="#1D9BC0" stroke-width="10" fill="none"/>
+    <path d="M240 760H520V665H810V760H1090V665H1380V760H1660"
+          stroke="#9F7A3E" stroke-width="8" fill="none"/>
+  </g>
+
+  <!-- Electrical single-line flow -->
+  <g class="line">
+    <path d="M95 210H315"/>
+    <path d="M315 210V310"/>
+    <path d="M315 310H545"/>
+    <path d="M545 310V210"/>
+    <path d="M545 210H805"/>
+    <path d="M805 210V310"/>
+    <path d="M805 310H1040"/>
+    <path d="M1040 310V210"/>
+    <path d="M1040 210H1290"/>
+    <path d="M1290 210V310"/>
+    <path d="M1290 310H1540"/>
+    <path d="M1540 310V210"/>
+    <path d="M1540 210H1810"/>
+  </g>
+
+  <!-- Top system nodes -->
+  <g>
+    <!-- Utility source -->
+    <circle class="node" cx="95" cy="210" r="38"/>
+    <path class="line" d="M80 228l15-38 15 38M72 216h46"/>
+    <text class="label" x="54" y="154">33KV SOURCE</text>
+
+    <!-- Meter -->
+    <rect class="node" x="270" y="170" width="90" height="80" rx="10"/>
+    <circle class="line" cx="315" cy="206" r="20"/>
+    <path class="line" d="M315 206l10-10M294 234h42"/>
+    <text class="label" x="279" y="148">METER</text>
+
+    <!-- Feeder -->
+    <rect class="node" x="500" y="170" width="90" height="80" rx="10"/>
+    <path class="line" d="M520 190h50M520 210h50M520 230h32"/>
+    <text class="label" x="505" y="148">FEEDER</text>
+
+    <!-- Transformer -->
+    <circle class="node" cx="785" cy="210" r="34"/>
+    <circle class="node" cx="830" cy="210" r="24"/>
+    <text class="label" x="742" y="148">TRANSFORMER</text>
+
+    <!-- LT Kiosk -->
+    <rect class="node" x="995" y="170" width="90" height="80" rx="10"/>
+    <path class="line" d="M1014 190h52M1014 210h52M1014 230h52"/>
+    <text class="label" x="1002" y="148">LT KIOSK</text>
+
+    <!-- Busduct -->
+    <rect class="node" x="1243" y="184" width="96" height="52" rx="9"/>
+    <path class="line" d="M1260 198h62M1260 222h62"/>
+    <text class="label" x="1242" y="148">BUSDuct</text>
+
+    <!-- PCC -->
+    <rect class="node" x="1493" y="170" width="94" height="80" rx="10"/>
+    <path class="line" d="M1512 191h56M1512 210h56M1512 229h56"/>
+    <text class="label" x="1514" y="148">PCC PANEL</text>
+
+    <!-- Building -->
+    <path class="node" d="M1715 250v-105h72v105z"/>
+    <path class="line" d="M1730 165h14M1759 165h14M1730 192h14M1759 192h14M1730 219h14M1759 219h14"/>
+    <text class="label" x="1698" y="122">BUILDING</text>
+  </g>
+
+  <!-- Vertical automation backbone -->
+  <g class="line">
+    <path d="M305 310V460H570"/>
+    <path d="M815 310V460H1050"/>
+    <path d="M1290 310V460H1545"/>
+    <path d="M570 460H1545"/>
+  </g>
+
+  <!-- Communication nodes -->
+  <g>
+    <circle class="node" cx="570" cy="460" r="28"/>
+    <path class="line" d="M557 468c8-10 18-10 26 0M562 458c5-6 11-6 16 0M569 449h2"/>
+    <text class="small" x="522" y="510">BACNET / IP</text>
+
+    <circle class="node" cx="1050" cy="460" r="28"/>
+    <path class="line" d="M1038 470h24M1038 460h24M1038 450h24"/>
+    <text class="small" x="1006" y="510">MODBUS RTU</text>
+
+    <circle class="node" cx="1545" cy="460" r="28"/>
+    <path class="line" d="M1532 470h26M1538 456h14M1543 445h4"/>
+    <text class="small" x="1505" y="510">MQTT GATEWAY</text>
+  </g>
+
+  <!-- Lower BMS subsystems -->
+  <g class="line2">
+    <path d="M190 760H450"/>
+    <path d="M450 760V665"/>
+    <path d="M450 665H760"/>
+    <path d="M760 665V760"/>
+    <path d="M760 760H1070"/>
+    <path d="M1070 760V665"/>
+    <path d="M1070 665H1380"/>
+    <path d="M1380 665V760"/>
+    <path d="M1380 760H1695"/>
+  </g>
+
+  <g>
+    <!-- HVAC -->
+    <circle class="node" cx="190" cy="760" r="42"/>
+    <path class="line" d="M190 726c14 0 18 12 8 23 15-2 22 9 15 21-8 13-24 6-26-7-4 14-20 17-28 5-7-12 3-23 17-21-10-11-1-21 14-21z"/>
+    <text class="label" x="153" y="822">AHU / HVAC</text>
+
+    <!-- Chiller -->
+    <rect class="node" x="405" y="718" width="90" height="84" rx="12"/>
+    <path class="line" d="M427 740h46M427 760h46M427 780h46"/>
+    <text class="label" x="414" y="842">CHILLER</text>
+
+    <!-- Lighting -->
+    <circle class="node" cx="760" cy="760" r="42"/>
+    <path class="line" d="M746 763c0-10 6-18 14-18s14 8 14 18c0 7-4 12-8 16h-12c-4-4-8-9-8-16zM752 785h16"/>
+    <text class="label" x="720" y="822">LIGHTING</text>
+
+    <!-- Fire -->
+    <circle class="node" cx="1070" cy="760" r="42"/>
+    <path class="line" d="M1070 724c10 13 18 22 18 34 0 12-8 22-18 22s-18-10-18-22c0-12 8-21 18-34z"/>
+    <text class="label" x="1021" y="822">FIRE SYSTEM</text>
+
+    <!-- Water -->
+    <rect class="node" x="1335" y="718" width="90" height="84" rx="12"/>
+    <path class="line" d="M1380 730c14 18 22 28 22 40a22 22 0 1 1-44 0c0-12 8-22 22-40z"/>
+    <text class="label" x="1341" y="842">WTP / STP</text>
+
+    <!-- DG -->
+    <circle class="node" cx="1695" cy="760" r="42"/>
+    <path class="line" d="M1675 742h40v36h-40zM1684 750v20M1706 750v20"/>
+    <text class="label" x="1668" y="822">DG SET</text>
+  </g>
+
+  <!-- Floor/building wireframe -->
+  <g opacity="0.12">
+    <path d="M1350 540h360v250h-360z" fill="none" stroke="#9FC6D6" stroke-width="2"/>
+    <path d="M1350 602h360M1350 664h360M1350 726h360" fill="none" stroke="#9FC6D6" stroke-width="1.4"/>
+    <path d="M1430 540v250M1510 540v250M1590 540v250M1670 540v250" fill="none" stroke="#9FC6D6" stroke-width="1.4"/>
+    <text class="label" x="1350" y="520">BUILDING FLOOR NETWORK</text>
+  </g>
+
+  <!-- Small telemetry dots -->
+  <g fill="#74BED4" fill-opacity=".28">
+    <circle cx="315" cy="310" r="4"/>
+    <circle cx="545" cy="210" r="4"/>
+    <circle cx="805" cy="310" r="4"/>
+    <circle cx="1040" cy="210" r="4"/>
+    <circle cx="1290" cy="310" r="4"/>
+    <circle cx="1540" cy="210" r="4"/>
+    <circle cx="570" cy="460" r="4"/>
+    <circle cx="1050" cy="460" r="4"/>
+    <circle cx="1545" cy="460" r="4"/>
+  </g>
+
+  <!-- Edge vignette -->
+  <rect width="1920" height="1080" fill="none" stroke="#02070C" stroke-opacity=".45" stroke-width="70"/>
+</svg>

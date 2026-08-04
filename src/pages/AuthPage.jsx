@@ -747,9 +747,10 @@ export default function AuthPage() {
   return (
     <main
       className="
-        relative flex min-h-screen items-center justify-end
-        overflow-hidden bg-cover bg-center bg-no-repeat px-5
+        relative flex min-h-[100dvh] items-center justify-center
+        overflow-x-hidden overflow-y-auto bg-cover bg-center bg-no-repeat px-3
         py-8 sm:px-8 lg:px-12
+        lg:justify-end
       "
       style={{
         backgroundImage: `url(${loginBg})`,
@@ -768,13 +769,13 @@ export default function AuthPage() {
         className="
           relative z-10 w-full max-w-[470px]
           border border-cyan-400/80 bg-[#081F5C]/80
-          px-7 py-7 text-white
+          px-4 py-6 text-white sm:px-7 sm:py-7
           shadow-[0_20px_60px_rgba(0,20,70,0.55),0_0_30px_rgba(0,74,173,0.42)]
           backdrop-blur-[4px]
         "
         aria-labelledby="login-heading"
       >
-        <div className="mb-6 flex items-center justify-center">
+        <div className="mb-6 flex flex-col items-center justify-center gap-4 min-[380px]:flex-row">
           <div>
             <h1
               className="
@@ -798,12 +799,12 @@ export default function AuthPage() {
             </p>
           </div>
 
-          <div className="mx-4 h-[52px] w-px bg-[#2084E8]" />
+          <div className="hidden h-[52px] w-px bg-[#2084E8] min-[380px]:block min-[380px]:mx-4" />
 
           <img
             src={prestigeLogo}
             alt="Prestige Group"
-            className="h-[60px] w-auto object-contain"
+            className="h-[52px] w-auto object-contain sm:h-[60px]"
           />
         </div>
 

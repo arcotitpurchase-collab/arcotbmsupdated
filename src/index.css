@@ -18,8 +18,24 @@ body,
   font-family: "Inter", sans-serif;
   background-color: var(--color-white);
   color: var(--color-dark-navy);
+  width: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+#root {
+  min-width: 0;
 }
 
 /* Remove underlines from all link/text anchor tags */
@@ -188,4 +204,3 @@ a:visited,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-

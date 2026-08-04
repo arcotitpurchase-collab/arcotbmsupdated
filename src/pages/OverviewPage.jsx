@@ -7280,9 +7280,9 @@ export default function OverviewPage() {
   }
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(0,174,239,0.07),transparent_28%),linear-gradient(180deg,#F7FAFD_0%,#EEF5FA_100%)] text-[#06224F]">
-      <header className="sticky top-0 z-[1000] h-[72px] shrink-0 border-b-4 border-[#004AAD] bg-[#081F5C] px-4 text-white shadow-[0_8px_30px_rgba(3,23,65,0.20)]">
-        <div className="flex h-full w-full items-center justify-between">
+    <div className="flex min-h-[100dvh] w-full flex-col overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(0,174,239,0.07),transparent_28%),linear-gradient(180deg,#F7FAFD_0%,#EEF5FA_100%)] text-[#06224F]">
+      <header className="sticky top-0 z-[1000] min-h-[72px] shrink-0 border-b-4 border-[#004AAD] bg-[#081F5C] px-3 py-3 text-white shadow-[0_8px_30px_rgba(3,23,65,0.20)] sm:px-4">
+        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Link to="/dashboard" className="flex min-w-0 items-center no-underline">
             <div className="min-w-0">
               <h1 className="truncate text-[clamp(18px,2vw,26px)] font-semibold uppercase leading-none tracking-[0.18em] text-white">
@@ -7304,11 +7304,11 @@ export default function OverviewPage() {
             />
           </Link>
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="grid w-full grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
             <Link
               to="/dashboard"
               replace
-              className="flex h-[32px] items-center justify-center border border-cyan-400 bg-[#004AAD] px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-[#0058D6]"
+              className="flex h-9 w-full items-center justify-center border border-cyan-400 bg-[#004AAD] px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-[#0058D6] sm:w-auto"
             >
               Back
             </Link>
@@ -7338,7 +7338,7 @@ export default function OverviewPage() {
                 tempApi.logout();
                 window.location.href = "/auth";
               }}
-              className="h-[32px] border border-red-400 bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-red-700"
+              className="h-9 w-full border border-red-400 bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-red-700 sm:w-auto"
             >
               Logout
             </button>
@@ -7378,8 +7378,8 @@ export default function OverviewPage() {
         }
       `}</style>
 
-      <main className="overview-main-grid mx-auto grid h-[calc(100dvh-72px)] w-full max-w-[1720px] grid-rows-[178px_110px_42px_minmax(0,1fr)] gap-2.5 overflow-y-auto px-4 py-3 sm:px-5 lg:overflow-hidden lg:px-6">
-        <section className="grid h-full min-h-0 grid-cols-12 gap-3 overflow-visible">
+      <main className="overview-main-grid mx-auto grid min-h-0 w-full max-w-[1720px] grid-rows-none gap-2.5 overflow-y-auto px-3 py-3 sm:px-5 lg:h-[calc(100dvh-72px)] lg:grid-rows-[178px_110px_42px_minmax(0,1fr)] lg:overflow-hidden lg:px-6">
+        <section className="grid min-h-0 grid-cols-1 gap-3 overflow-visible lg:grid-cols-12">
           <div className="relative col-span-12 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] lg:col-span-4">
             <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10 bg-white/[0.04]" />
             <div className="pointer-events-none absolute -bottom-24 left-16 h-52 w-52 rounded-full bg-[#17A8DB]/15 blur-3xl" />
@@ -7406,8 +7406,8 @@ export default function OverviewPage() {
 </div>
           </div>
 
-       <Card className="print-safe col-span-12 flex h-full min-h-0 flex-col overflow-visible p-3.5 lg:col-span-8">
-  <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#E3ECF5] pb-2.5">
+       <Card className="print-safe col-span-12 flex min-h-0 flex-col overflow-visible p-3.5 lg:h-full lg:col-span-8">
+  <div className="flex shrink-0 flex-col gap-3 border-b border-[#E3ECF5] pb-2.5 sm:flex-row sm:items-center sm:justify-between">
     <div className="flex items-center gap-3.5">
       <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#D6E4F2] bg-[#EDF5FA] text-[#1B73C9]">
         <Gauge size={21} strokeWidth={2.2} />
@@ -7424,7 +7424,7 @@ export default function OverviewPage() {
       </div>
     </div>
 
-    <div className="flex items-center gap-2">
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
       <button
         type="button"
         onClick={downloadCsv}
@@ -7488,7 +7488,7 @@ export default function OverviewPage() {
     </div>
   </div>
 
-  <div className="mt-3 grid flex-1 grid-cols-2 items-end gap-3 overflow-visible md:grid-cols-4 xl:grid-cols-6">
+  <div className="mt-3 grid flex-1 grid-cols-1 items-end gap-3 overflow-visible sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-6">
     <label className="flex min-w-0 flex-col gap-1.5">
       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
         Equipment
@@ -7628,7 +7628,7 @@ export default function OverviewPage() {
 </Card>
         </section>
 
-        <section className="grid h-full grid-cols-2 gap-2.5 lg:grid-cols-5">
+        <section className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:h-full lg:grid-cols-5">
           <MetricCard
             label="Consumed Energy"
             value={summary.totalEnergy.toLocaleString(undefined, {
@@ -7678,8 +7678,8 @@ export default function OverviewPage() {
           />
         </section>
 
-        <div className="flex h-full items-center justify-between rounded-[11px] border border-[#D3E2EF] bg-white px-1.5 shadow-[0_8px_22px_rgba(8,31,92,0.06)]">
-          <div className="flex items-center gap-1">
+        <div className="flex min-h-[42px] flex-col gap-2 rounded-[11px] border border-[#D3E2EF] bg-white px-1.5 py-1.5 shadow-[0_8px_22px_rgba(8,31,92,0.06)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="grid grid-cols-2 gap-1 sm:flex sm:items-center">
             <button
               type="button"
               onClick={() => setActiveWorkspace("analytics")}
@@ -7717,21 +7717,21 @@ export default function OverviewPage() {
 
         {activeWorkspace === "analytics" ? (
           canViewReports ? (
-            <section className="grid h-full min-h-0 grid-cols-12 gap-2.5 overflow-hidden">
-            <Card className="print-safe col-span-12 flex h-full min-h-0 flex-col p-3.5 xl:col-span-8">
+            <section className="grid min-h-0 grid-cols-1 gap-2.5 lg:grid-cols-12 lg:overflow-hidden">
+            <Card className="print-safe flex min-h-[260px] flex-col p-3.5 lg:col-span-12 lg:h-full xl:col-span-8">
               <SectionTitle
                 title={`${selectedEquipmentLabel} Load Trend`}
                 subtitle="Incoming and outgoing power across the selected period."
                 icon={TrendingUp}
               />
 
-              <div className="flex min-h-0 flex-1 items-stretch rounded-[12px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FAFCFE_0%,#F6FAFE_100%)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+              <div className="flex min-h-[220px] flex-1 items-stretch rounded-[12px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FAFCFE_0%,#F6FAFE_100%)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:min-h-[280px] lg:min-h-0">
                 <TrendChart rows={filteredData} />
               </div>
             </Card>
 
-            <div className="col-span-12 grid h-full min-h-0 grid-cols-2 gap-2.5 xl:col-span-4 xl:grid-cols-1 xl:grid-rows-[0.82fr_1.18fr]">
-              <Card className="print-safe flex h-full min-h-0 flex-col p-3">
+            <div className="grid min-h-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:col-span-12 xl:col-span-4 xl:grid-cols-1 xl:grid-rows-[0.82fr_1.18fr]">
+              <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
                 <SectionTitle
                   title="Electrical Quality"
                   subtitle="Average electrical conditions for the selected data."
@@ -7771,7 +7771,7 @@ export default function OverviewPage() {
                 </div>
               </Card>
 
-              <Card className="print-safe flex h-full min-h-0 flex-col p-3">
+              <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
                 <SectionTitle
                   title="Hourly Consumption"
                   subtitle="Recent energy consumption blocks."
@@ -7792,15 +7792,78 @@ export default function OverviewPage() {
           )
         ) : (
           canViewLiveReadings ? (
-            <section className="h-full min-h-0">
-            <Card className="print-safe flex h-full min-h-0 flex-col p-3.5">
+            <section className="min-h-0 lg:h-full">
+            <Card className="print-safe flex min-h-[360px] flex-col p-3.5 lg:h-full lg:min-h-0">
               <SectionTitle
                 title="Detailed Analytical Readings"
                 subtitle={`${filteredData.length.toLocaleString()} readings match the selected filters.`}
                 icon={Layers3}
               />
 
-              <div className="min-h-0 flex-1 overflow-auto rounded-[12px] border border-[#E2EBF4]">
+              <div className="mt-3 space-y-3 xl:hidden">
+                {filteredData.length === 0 ? (
+                  <p className="rounded-[12px] border border-[#E2EBF4] px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]">
+                    No monitoring readings are available for the assigned Zones.
+                  </p>
+                ) : (
+                  filteredData.map((row, index) => {
+                    const loss = Math.max(
+                      0,
+                      Number(row.incomingKw) - Number(row.outgoingKw),
+                    );
+
+                    return (
+                      <article
+                        key={`${row.timestamp}-${row.equipment}-${index}`}
+                        className="w-full rounded-[12px] border border-[#E2EBF4] bg-white p-3 text-[11px] text-[#5F738D]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="break-words text-sm font-black text-[#06224F]">
+                              {row.equipmentLabel}
+                            </h3>
+                            <p className="mt-1 text-[10px]">
+                              {new Date(row.timestamp).toLocaleString()}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.08em] ${
+                              row.status === "Normal"
+                                ? "border-[#BEE8D4] bg-[#E8F5EE] text-[#15805F]"
+                                : "border-[#F4D3B2] bg-[#FFF5DD] text-[#B7791F]"
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </div>
+
+                        <dl className="mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+                          {[
+                            ["Incoming", `${row.incomingKw} kW`],
+                            ["Outgoing", `${row.outgoingKw} kW`],
+                            ["Energy", `${row.energyKwh} kWh`],
+                            ["Voltage", `${row.voltage} V`],
+                            ["Current", `${row.current} A`],
+                            ["Power Factor", row.powerFactor],
+                            ["Loss", `${loss} kW`],
+                          ].map(([label, value]) => (
+                            <div key={label}>
+                              <dt className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]">
+                                {label}
+                              </dt>
+                              <dd className="mt-1 font-semibold text-[#06224F]">
+                                {value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="hidden min-h-0 flex-1 overflow-y-auto rounded-[12px] border border-[#E2EBF4] xl:block">
                 <table className="w-full min-w-[1050px] border-collapse">
                   <thead className="sticky top-0 z-10 bg-[#F5F9FC]/95 backdrop-blur">
                     <tr className="border-b border-[#D8E6F2]">

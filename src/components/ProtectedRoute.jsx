@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 function LoadingScreen() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#020B24] p-6 text-white">
+    <main className="flex min-h-[100dvh] w-full items-center justify-center overflow-x-hidden bg-[#020B24] p-4 text-white sm:p-6">
       <section className="border border-white/10 bg-white/[0.06] px-6 py-5 text-center">
         <p className="text-sm font-semibold text-cyan-300">
           Restoring secure session...

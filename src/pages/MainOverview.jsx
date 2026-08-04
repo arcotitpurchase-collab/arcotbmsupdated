@@ -13776,6 +13776,7 @@ import {
 } from "lucide-react";
 import aiLogo from "../assets/AI LOGO.png";
 import prestigeLogo from "../assets/ser-removebg.png";
+import skyscraperBg from "../assets/detail-shot-skyscrapers.jpg";
 import { tempApi } from "../tempAdminApi";
 import { SYSTEM_ROLES, USER_PERMISSIONS } from "../data/permissionOptions";
 import { buildings } from "../data/bmsData";
@@ -13894,8 +13895,10 @@ const OverviewBox = ({
   title,
   subtitle,
   icon,
-  accent = "#00D9FF",
+  accent = "#1687C9",
   onClick,
+  badge = "Healthy",
+  badgeTone = "healthy",
   liveStatus = {
     on: true,
     healthy: true,
@@ -13908,89 +13911,93 @@ const OverviewBox = ({
       label: "ON",
       value: liveStatus.on ? "ACTIVE" : "INACTIVE",
       active: liveStatus.on,
-      dot: "#2CE8A3",
-      text: "#2CE8A3",
+      dot: "#28B984",
     },
     {
       key: "healthy",
       label: "HEALTHY",
       value: liveStatus.healthy ? "NORMAL" : "WARNING",
       active: liveStatus.healthy,
-      dot: "#FFD33D",
-      text: "#FFD33D",
+      dot: "#F1BD37",
     },
     {
       key: "off",
       label: "OFF",
       value: liveStatus.off ? "STOPPED" : "NO FAULT",
       active: liveStatus.off,
-      dot: "#6F84A2",
-      text: "#D3DCE9",
+      dot: "#98A2AD",
     },
   ];
+
+  const badgeClasses =
+    badgeTone === "warning"
+      ? "border-[#E6B92E]/70 bg-[#FFD34A] text-[#5A4300]"
+      : badgeTone === "active"
+        ? "border-[#1497A1]/70 bg-[#1BA5AE] text-white"
+        : "border-[#20A36A]/70 bg-[#31B878] text-white";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="
-        group relative z-10 flex h-full min-h-0 w-full flex-col overflow-hidden
-        rounded-[16px] border border-[#1B5F9F]
-        bg-[linear-gradient(155deg,#0A326B_0%,#06224F_52%,#04163A_100%)]
-        text-left
-        shadow-[0_14px_30px_rgba(3,42,98,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]
-        transition-all duration-300
-        hover:-translate-y-1
-        hover:border-[#2D9BE8]
-        hover:shadow-[0_18px_38px_rgba(3,49,113,0.20)]
-        focus:outline-none focus:ring-2 focus:ring-cyan-400/40
-      "
+      className="group relative z-10 flex h-full min-h-[172px] w-full flex-col overflow-hidden rounded-[22px] border border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.97),rgba(235,240,243,0.90))] text-left shadow-[0_24px_55px_rgba(26,48,66,0.16),0_4px_14px_rgba(26,48,66,0.08),inset_0_1px_0_rgba(255,255,255,1)] backdrop-blur-[20px] transition-all duration-200 hover:-translate-y-[3px] hover:border-white hover:shadow-[0_30px_65px_rgba(24,47,66,0.20),0_8px_20px_rgba(24,47,66,0.10),inset_0_1px_0_rgba(255,255,255,1)] focus:outline-none focus:ring-2 focus:ring-[#2E7898]/25 disabled:cursor-default disabled:hover:translate-y-0"
     >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[4px] opacity-90"
+        style={{
+          background: `linear-gradient(90deg, transparent 0%, ${accent} 20%, ${accent} 80%, transparent 100%)`,
+        }}
+      />
+      <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full bg-white/70 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-24 rounded-full bg-[#9FBBC9]/18 blur-3xl" />
 
-      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-1 text-center">
-        <div
-          className="mb-1.5 flex h-[clamp(44px,5vh,54px)] w-[clamp(44px,5vh,54px)] shrink-0 items-center justify-center rounded-[10px] border-2 bg-[#031A43]"
-          style={{
-            color: accent,
-            borderColor: accent,
-          }}
-        >
-          {icon}
-        </div>
-
-        <h4 className="max-w-full truncate text-[clamp(15px,1.28vw,20px)] font-black uppercase leading-tight tracking-[-0.025em] text-white">
-          {title}
-        </h4>
-
-        <p className="mt-1 max-w-full truncate text-[clamp(9px,0.78vw,12px)] font-semibold text-[#D7E4F5]">
-          {subtitle}
-        </p>
+      <div
+        className={`absolute right-4 top-4 flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-semibold shadow-[0_5px_12px_rgba(31,53,70,0.10)] ${badgeClasses}`}
+      >
+        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/25 text-[9px]">✓</span>
+        {badge}
       </div>
 
-      <div className="grid h-[clamp(50px,5.8vh,58px)] shrink-0 grid-cols-3 border-t border-[#1267B7] bg-[#03183F]/96">
+      <div className="flex min-h-0 flex-1 items-center gap-5 px-6 pb-4 pt-6">
+        <div
+          className="relative flex h-[84px] w-[84px] shrink-0 items-center justify-center text-[#11181F] [&>svg]:h-[66px] [&>svg]:w-[66px]"
+          style={{ color: "#11181F" }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[20px] border border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.88),rgba(224,232,236,0.70))] shadow-[0_12px_28px_rgba(39,61,76,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]"
+            style={{ boxShadow: `0 14px 28px rgba(39,61,76,0.08), inset 0 0 0 1px ${accent}20` }}
+          />
+          <div className="relative z-10 flex items-center justify-center">{icon}</div>
+        </div>
+
+        <div className="min-w-0 flex-1 pt-2">
+          <h4 className="truncate text-[clamp(17px,1.35vw,22px)] font-black uppercase leading-none tracking-[-0.035em] text-[#132131]">
+            {title}
+          </h4>
+          <p className="mt-2 truncate text-[clamp(10px,0.8vw,12px)] font-semibold tracking-[0.01em] text-[#5C6874]">
+            {subtitle}
+          </p>
+          <div className="mt-4 h-px w-full bg-gradient-to-r from-[#AFC0C9]/80 via-[#D8E1E5]/70 to-transparent" />
+        </div>
+      </div>
+
+      <div className="grid h-[52px] shrink-0 grid-cols-3 border-t border-[#C5D0D6]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(231,237,240,0.92))] backdrop-blur-md">
         {conditions.map((item, index) => (
           <div
             key={item.key}
-            className="flex flex-col items-center justify-center px-1"
+            className={`flex flex-col items-center justify-center px-1 ${index !== 2 ? "border-r border-[#D0D9DE]/80" : ""}`}
           >
             <div
-              className="flex items-center gap-1.5 text-[9px] font-black xl:text-[10px]"
-              style={{ color: item.active ? item.text : "#7186A5" }}
+              className="flex items-center gap-1.5 text-[9px] font-black"
+              style={{ color: item.active ? item.dot : "#858E97" }}
             >
               <span
                 className="h-2 w-2 rounded-full"
-                style={{
-                  backgroundColor: item.active ? item.dot : "#7186A5",
-                  boxShadow:
-                    item.active && item.key !== "off"
-                      ? `0 0 9px ${item.dot}80`
-                      : "none",
-                }}
+                style={{ backgroundColor: item.active ? item.dot : "#A8AFB6" }}
               />
               {item.label}
             </div>
-
-            <span className="mt-1 text-[8px] font-bold tracking-[0.04em] text-white">
+            <span className="mt-0.5 text-[7px] font-black tracking-[0.04em] text-[#31404D]">
               {item.value}
             </span>
           </div>
@@ -14002,7 +14009,7 @@ const OverviewBox = ({
 
 const FlowLineH = () => (
   <div className="relative flex h-full w-full items-center">
-    <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#17A8DB] shadow-[0_0_8px_rgba(23,168,219,0.25)]" />
+    <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,#48BDD0,#1798B3)] shadow-[0_2px_6px_rgba(23,152,179,0.18)]" />
     <div className="absolute right-0 top-1/2 -translate-y-1/2">
       <div className="h-0 w-0 border-y-[6px] border-l-[9px] border-y-transparent border-l-[#17A8DB]" />
     </div>
@@ -14011,7 +14018,7 @@ const FlowLineH = () => (
 
 const FlowLineHReverse = () => (
   <div className="relative flex h-full w-full items-center">
-    <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#17A8DB] shadow-[0_0_8px_rgba(23,168,219,0.25)]" />
+    <div className="absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,#48BDD0,#1798B3)] shadow-[0_2px_6px_rgba(23,152,179,0.18)]" />
     <div className="absolute left-0 top-1/2 -translate-y-1/2">
       <div className="h-0 w-0 border-y-[6px] border-r-[9px] border-y-transparent border-r-[#17A8DB]" />
     </div>
@@ -22411,342 +22418,180 @@ const BuildingsPopup = () => {
 
 
   return (
-
-    <main className="min-h-screen bg-white text-[#081F5C] flex flex-col font-sans">
+    <main className="flex min-h-screen flex-col overflow-hidden bg-[#D9E2E8] font-sans text-[#132131]">
       {accessMessage && (
-        <div className="fixed right-5 top-24 z-[1200] max-w-sm border border-amber-300 bg-[#081F5C] px-4 py-3 text-sm font-semibold text-white shadow-2xl">
+        <div className="fixed right-5 top-24 z-[1200] max-w-sm rounded-lg border border-amber-300 bg-white/95 px-4 py-3 text-sm font-semibold text-[#17212B] shadow-2xl backdrop-blur-xl">
           <div className="flex items-start gap-2">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
             <span>{accessMessage}</span>
           </div>
         </div>
       )}
-  
 
-<header className="sticky top-0 z-[1000] h-[72px] border-b-[3px] border-[#0B64B8] bg-[linear-gradient(90deg,#08285F_0%,#061D4B_48%,#04163B_100%)] px-5 text-white shadow-[0_8px_24px_rgba(2,24,59,0.22)]">
-  <div className="flex h-full w-full items-center justify-between">
-    {/* BRAND */}
-    <div
-      onClick={() => setActivePopup(null)}
-      className="flex min-w-0 cursor-pointer items-center"
-    >
-      <div className="flex min-w-0 flex-col justify-center">
-        <h1 className="truncate text-[clamp(20px,2vw,28px)] font-semibold uppercase leading-none tracking-[0.17em] text-white">
-          ARCOT
-          <span className="ml-2 text-[#43D6F5]">IIoT 1.0</span>
-        </h1>
-
-        <span className="mt-1 truncate text-[8px] font-medium uppercase tracking-[0.34em] text-[#B7D4F3] xl:text-[9px]">
-          {currentUser.companyName || "Industrial Internet of Things"}
-          {currentUser.buildingName ? ` · ${currentUser.buildingName}` : ""}
-        </span>
-      </div>
-
-      <div className="mx-5 h-[50px] border-l border-[#1B65AD]" />
-
-      <img
-        src={prestigeLogo}
-        alt="Prestige Group"
-        className="h-[54px] w-[96px] object-contain"
-      />
-    </div>
-
-    {/* ACTIONS — SAME HEIGHT AND SAME WIDTH */}
-    <div
-      className={`grid shrink-0 gap-3 ${
-        isAdminAccount ? "grid-cols-5" : "grid-cols-4"
-      }`}
-    >
-      <button
-        type="button"
-        onClick={() => navigate("/overview")}
-        className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#1CC8F0] bg-[#0750A3] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(0,0,0,0.16)] transition hover:bg-[#0862C4]"
-      >
-        Overview
-      </button>
-
-      {isAdminAccount && (
-        <button
-          type="button"
-          onClick={() => navigate("/admin/dashboard")}
-          className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#1CC8F0] bg-[#0750A3] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(0,0,0,0.16)] transition hover:bg-[#0862C4]"
-        >
-          PROFILE
-        </button>
-      )}
-
-      <div className="flex h-[44px] w-[168px] items-center justify-center gap-2 rounded-[4px] border border-[#176BB7] bg-[#04183D] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
-        <Bluetooth className="h-4 w-4 text-emerald-400" strokeWidth={2.2} />
-        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.85)]" />
-        <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.1em]">
-          BLE Connected
-        </span>
-      </div>
-
-      <div className="flex h-[44px] w-[168px] min-w-0 items-center gap-2 rounded-[4px] border border-[#176BB7] bg-[#04183D] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-400/10 text-[10px] font-black text-cyan-200">
-          {currentUser.name?.slice(0, 1)?.toUpperCase() || "U"}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-[10px] font-black uppercase tracking-[0.06em] text-white">
-            {currentUser.name}
-          </p>
-          <p className="truncate text-[8px] uppercase tracking-[0.08em] text-blue-300">
-            {currentUser.designation || "USER"}
-          </p>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#FF625D] bg-[#CF2222] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(101,0,0,0.20)] transition hover:bg-[#E12B2B]"
-      >
-        Logout
-      </button>
-    </div>
-  </div>
-</header>
-      
-
-<section className="relative h-[calc(100dvh-72px)] w-full overflow-hidden bg-[#F4F8FC] px-4 py-3">
-  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(23,168,219,0.07),transparent_38%),linear-gradient(180deg,#F9FBFE_0%,#EEF4FA_100%)]" />
-
-  <div className="relative z-10 grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)] gap-y-2">
-    {/* FLOW ROW 1: SOURCE → FEEDER → TRANSFORMER → LT KIOSK */}
-    <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)] items-stretch">
-      <OverviewBox
-        title="33kV Source"
-        subtitle="2 Incoming / 1 Outgoing"
-        icon={<UtilityPole className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#00D9FF"
-        onClick={
-          canInteractWithFlow
-            ? () =>
-                openPermittedPopup(
-                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-                  "source"
-                )
-            : undefined
-        }
-      />
-
-      <FlowLineH />
-
-      <OverviewBox
-        title="33kV Feeder"
-        subtitle="1 Incoming / 6 Outgoing"
-        icon={<Network className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#FFD000"
-        onClick={
-          canInteractWithFlow
-            ? () =>
-                openPermittedPopup(
-                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-                  "feeders"
-                )
-            : undefined
-        }
-      />
-
-      <FlowLineH />
-
-      <OverviewBox
-        title="Transformer"
-        subtitle="33kV / 433V"
-        icon={<Factory className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#A56AF2"
-        onClick={
-          canInteractWithFlow
-            ? () =>
-                openPermittedPopup(
-                  USER_PERMISSIONS.LIVE_MONITORING_VIEW,
-                  "transformers"
-                )
-            : undefined
-        }
-      />
-
-      <FlowLineH />
-
-      <OverviewBox
-        title="LT Kiosk"
-        subtitle="433V Panel"
-        icon={<PanelsTopLeft className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#00D9FF"
-        onClick={canInteractWithFlow ? () => setActivePopup("kiosks") : undefined}
-      />
-    </div>
-
-    {/* LT KIOSK → BUSDUCT: same routed connector as the old code */}
-    <div className="relative min-h-0 w-full">
-      <svg
-        className="absolute inset-0 h-full w-full overflow-visible"
-        viewBox="0 0 1000 34"
-        preserveAspectRatio="none"
-        fill="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <marker
-            id="kioskToBusductPremiumArrow"
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto"
+      <header className="sticky top-0 z-[1000] h-[72px] border-b-[3px] border-[#C8A96B] bg-[linear-gradient(90deg,#07172B_0%,#0B2440_48%,#0D2E4E_100%)] px-5 text-white shadow-[0_8px_24px_rgba(2,24,59,0.22)]">
+        <div className="flex h-full w-full items-center justify-between">
+          {/* BRAND */}
+          <div
+            onClick={() => setActivePopup(null)}
+            className="flex min-w-0 cursor-pointer items-center"
           >
-            <path d="M0 1 L9 5 L0 9 Z" fill="#17A8DB" />
-          </marker>
-        </defs>
+            <div className="flex min-w-0 flex-col justify-center">
+              <h1 className="truncate text-[clamp(20px,2vw,28px)] font-semibold uppercase leading-none tracking-[0.17em] text-white">
+                ARCOT
+                <span className="ml-2 text-[#D8B56A]">IIoT 1.0</span>
+              </h1>
 
-        <path
-          d="M875 -34 V15 H125 V40"
-          stroke="#17A8DB"
-          strokeWidth="2.5"
-          vectorEffect="non-scaling-stroke"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          markerEnd="url(#kioskToBusductPremiumArrow)"
-        />
-      </svg>
-    </div>
+              <span className="mt-1 truncate text-[8px] font-medium uppercase tracking-[0.34em] text-[#AFC4D8] xl:text-[9px]">
+                {currentUser.companyName || "Industrial Internet of Things"}
+                {currentUser.buildingName ? ` · ${currentUser.buildingName}` : ""}
+              </span>
+            </div>
 
-    {/* FLOW ROW 2: exact old sequence — BUSDUCT → PCC → RAISING MAIN → WING */}
-    <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)] items-stretch">
-      <OverviewBox
-        title="Busduct"
-        subtitle="LT Busduct Distribution"
-        icon={<Grid2X2 className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#FF3BA5"
-        onClick={canInteractWithFlow ? () => setActivePopup("busbars") : undefined}
-      />
+            <div className="mx-5 h-[50px] border-l border-[#385674]" />
 
-      <FlowLineH />
+            <img
+              src={prestigeLogo}
+              alt="Prestige Group"
+              className="h-[54px] w-[96px] object-contain"
+            />
+          </div>
 
-      <OverviewBox
-        title="PCC"
-        subtitle="Wing 1 + Wing 2"
-        icon={<PanelsTopLeft className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#FF9800"
-        onClick={canInteractWithFlow ? () => setActivePopup("pccMain") : undefined}
-      />
-
-      <FlowLineH />
-
-      <OverviewBox
-        title="Raising Main"
-        subtitle="Vertical Distribution"
-        icon={<TowerControl className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#1CA8FF"
-        onClick={canInteractWithFlow ? () => setActivePopup("raisingMain") : undefined}
-      />
-
-      <FlowLineH />
-
-      <OverviewBox
-        title="Wing"
-        subtitle="Wing A / Wing B"
-        icon={<Building2 className="h-7 w-7" strokeWidth={1.8} />}
-        accent="#34E978"
-        onClick={() => setActivePopup("buildings")}
-      />
-    </div>
-
-    {/* WING → DG: routed back to the left, matching the old connector pattern */}
-    <div className="relative min-h-0 w-full">
-      <svg
-        className="absolute inset-0 h-full w-full overflow-visible"
-        viewBox="0 0 1000 34"
-        preserveAspectRatio="none"
-        fill="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <marker
-            id="wingToDgPremiumArrow"
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="6"
-            markerHeight="6"
-            orient="auto"
+          {/* ACTIONS — SAME HEIGHT AND SAME WIDTH */}
+          <div
+            className={`grid shrink-0 gap-3 ${
+              isAdminAccount ? "grid-cols-5" : "grid-cols-4"
+            }`}
           >
-            <path d="M0 1 L9 5 L0 9 Z" fill="#17A8DB" />
-          </marker>
-        </defs>
+            <button
+              type="button"
+              onClick={() => navigate("/overview")}
+              className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#7EA7C9] bg-[linear-gradient(180deg,#1C5D8F,#154A73)] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(0,0,0,0.16)] transition hover:brightness-110"
+            >
+              Overview
+            </button>
 
-        <path
-          d="M875 -34 V15 H125 V40"
-          stroke="#17A8DB"
-          strokeWidth="2.5"
-          vectorEffect="non-scaling-stroke"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          markerEnd="url(#wingToDgPremiumArrow)"
-        />
-      </svg>
-    </div>
+            {isAdminAccount && (
+              <button
+                type="button"
+                onClick={() => navigate("/admin/dashboard")}
+                className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#7EA7C9] bg-[linear-gradient(180deg,#1C5D8F,#154A73)] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(0,0,0,0.16)] transition hover:brightness-110"
+              >
+              Profile
+              </button>
+            )}
 
-    {/* FLOW ROW 3: DG → CHILLERS → WTP → FIRE */}
-    <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)_38px_minmax(0,1fr)] items-stretch">
-      <OverviewBox
-        title="DG"
-        subtitle="Diesel Generator Supply"
-        icon={
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="3" y="6" width="18" height="12" rx="2" />
-            <path d="M7 10h4M7 14h3M16 9v6M19 10v4" />
-          </svg>
-        }
-        accent="#F7B731"
-        onClick={canInteractWithFlow ? () => setActivePopup("dg") : undefined}
-      />
+            <div className="flex h-[44px] w-[168px] items-center justify-center gap-2 rounded-[4px] border border-[#355B7A] bg-[#0A2037] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]">
+              <Bluetooth className="h-4 w-4 text-emerald-400" strokeWidth={2.2} />
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_9px_rgba(52,211,153,0.85)]" />
+              <span className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.1em]">
+                BLE Connected
+              </span>
+            </div>
 
-      <FlowLineH />
+            <div className="flex h-[44px] w-[168px] min-w-0 items-center gap-2 rounded-[4px] border border-[#355B7A] bg-[#0A2037] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D8B56A]/35 bg-[#D8B56A]/10 text-[10px] font-black text-[#F4D79A]">
+                {currentUser.name?.slice(0, 1)?.toUpperCase() || "U"}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[10px] font-black uppercase tracking-[0.06em] text-white">
+                  {currentUser.name}
+                </p>
+                <p className="truncate text-[8px] uppercase tracking-[0.08em] text-blue-300">
+                  {currentUser.designation || "USER"}
+                </p>
+              </div>
+            </div>
 
-      <OverviewBox
-        title="Chillers"
-        subtitle="HVAC Cooling Plant"
-        icon={
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 2v20M4.2 6.5l15.6 11M19.8 6.5l-15.6 11" />
-            <circle cx="12" cy="12" r="2.2" />
-          </svg>
-        }
-        accent="#27C7F3"
-      />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-[44px] w-[168px] items-center justify-center rounded-[4px] border border-[#C87772] bg-[linear-gradient(180deg,#B84A46,#923733)] px-4 text-[11px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_5px_12px_rgba(101,0,0,0.20)] transition hover:brightness-110"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <FlowLineH />
+      <section className="relative h-[calc(100dvh-72px)] w-full overflow-hidden px-5 py-5">
+        {/* Premium technical background image */}
+      {/* Background Image */}
+<div
+  className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"
+  style={{
+    backgroundImage: `url(${skyscraperBg})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+  aria-hidden="true"
+/>
 
-      <OverviewBox
-        title="WTP"
-        subtitle="Water Treatment Plant"
-        icon={
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 2s6 6.4 6 12a6 6 0 1 1-12 0c0-5.6 6-12 6-12Z" />
-            <path d="M9 15c.8 1.2 1.8 1.8 3 1.8" />
-          </svg>
-        }
-        accent="#17A8DB"
-      />
+{/* Dark Overlay */}
+<div
+  className="pointer-events-none absolute inset-0 bg-[rgba(6,18,34,0.55)]"
+  aria-hidden="true"
+/>
 
-      <FlowLineH />
+{/* Soft Blue Light */}
+<div
+  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,74,173,0.18),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(0,140,255,0.10),transparent_55%)]"
+  aria-hidden="true"
+/>
 
-      <OverviewBox
-        title="Fire"
-        subtitle="Fire & Life Safety"
-        icon={
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12.5 2.5c.5 3-1.8 4.2-1.2 6.4.4 1.3 1.6 1.8 2.5 2.8 1.1 1.2 1.7 2.5 1.7 4.1A5.5 5.5 0 0 1 4.8 17c-.5-3.6 1.8-6.1 4.1-8.3.1 2.5 1.4 3.4 2.3 3.3 1.7-.2 2.3-2.4 1.3-9.5Z" />
-          </svg>
-        }
-        accent="#FF5A5F"
-      />
-    </div>
-  </div>
-</section>
+{/* Very Light Grid */}
+<div
+  className="pointer-events-none absolute inset-0 opacity-[0.04]
+  [background-image:linear-gradient(rgba(255,255,255,.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.15)_1px,transparent_1px)]
+  [background-size:48px_48px]"
+  aria-hidden="true"
+/>
+        <div className="relative z-10 grid h-full min-h-0 w-full grid-rows-[minmax(0,1fr)_32px_minmax(0,1fr)_32px_minmax(0,1fr)] gap-y-2.5">
+          <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)] items-stretch">
+            <OverviewBox title="33kV Source" subtitle="2 Incoming / 1 Outgoing" icon={<UtilityPole strokeWidth={1.55} />} accent="#1687C9" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "source") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="33kV Feeder" subtitle="1 Incoming / 6 Outgoing" icon={<Network strokeWidth={1.55} />} accent="#6E5B15" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "feeders") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="Transformer" subtitle="33kV / 433V" icon={<Factory strokeWidth={1.55} />} accent="#70457A" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "transformers") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="LT Kiosk" subtitle="433V Panel" icon={<PanelsTopLeft strokeWidth={1.55} />} accent="#356987" onClick={canInteractWithFlow ? () => setActivePopup("kiosks") : undefined} />
+          </div>
+
+          <div className="relative min-h-0 w-full">
+            <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 1000 28" preserveAspectRatio="none" fill="none" aria-hidden="true">
+              <defs><marker id="kioskToBusductRefArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1 L9 5 L0 9 Z" fill="#2C93A6" /></marker></defs>
+              <path d="M875 -28 V12 H125 V32" stroke="#2C93A6" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" markerEnd="url(#kioskToBusductRefArrow)" />
+            </svg>
+          </div>
+
+          <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)] items-stretch">
+            <OverviewBox title="Busduct" subtitle="LT Busduct Distribution" icon={<Grid2X2 strokeWidth={1.55} />} accent="#7C4A57" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("busbars") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="PCC" subtitle="Wing 1 + Wing 2" icon={<PanelsTopLeft strokeWidth={1.55} />} accent="#756119" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("pccMain") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="Raising Main" subtitle="Vertical Distribution" icon={<TowerControl strokeWidth={1.55} />} accent="#226A8D" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("raisingMain") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="Wing" subtitle="Wing A / Wing B" icon={<Building2 strokeWidth={1.55} />} accent="#287B61" badge="Active" badgeTone="warning" onClick={() => setActivePopup("buildings")} />
+          </div>
+
+          <div className="relative min-h-0 w-full">
+            <svg className="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 1000 28" preserveAspectRatio="none" fill="none" aria-hidden="true">
+              <defs><marker id="wingToDgRefArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1 L9 5 L0 9 Z" fill="#2C93A6" /></marker></defs>
+              <path d="M875 -28 V12 H125 V32" stroke="#2C93A6" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" markerEnd="url(#wingToDgRefArrow)" />
+            </svg>
+          </div>
+
+          <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)_34px_minmax(0,1fr)] items-stretch">
+            <OverviewBox title="DG" subtitle="Diesel Generator Supply" icon={<Factory strokeWidth={1.55} />} accent="#78611D" badge="Active" badgeTone="warning" onClick={canInteractWithFlow ? () => setActivePopup("dg") : undefined} />
+            <FlowLineH />
+            <OverviewBox title="Chillers" subtitle="HVAC Cooling Plant" icon={<CloudSun strokeWidth={1.55} />} accent="#2B7191" badge="Active" badgeTone="warning" />
+            <FlowLineH />
+            <OverviewBox title="WTP" subtitle="Water Treatment Plant" icon={<Leaf strokeWidth={1.55} />} accent="#2C748C" />
+            <FlowLineH />
+            <OverviewBox title="Fire" subtitle="Fire & Life Safety" icon={<ShieldAlert strokeWidth={1.55} />} accent="#9C3E42" badge="Active" badgeTone="warning" />
+          </div>
+        </div>
+      </section>
 
 {canInteractWithFlow && (
   <>
@@ -22775,3 +22620,9 @@ const BuildingsPopup = () => {
     </main>
   );
 }
+
+
+
+
+
+

@@ -201,7 +201,7 @@ export const validateRouteAccess = (account, routeType, resourceId) => {
 export const resolveAccountLandingRoute = (account) => {
   if (!account) return "/auth";
   if (account.systemRole === SYSTEM_ROLES.SUPER_ADMIN) return "/super-admin";
-  if (account.systemRole === SYSTEM_ROLES.ADMIN) return "/dashboard";
+  if (account.systemRole === SYSTEM_ROLES.ADMIN) return "/admin/dashboard";
   return "/dashboard";
 };
 

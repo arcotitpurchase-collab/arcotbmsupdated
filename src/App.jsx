@@ -47,8 +47,8 @@ function DefaultRoute() {
 
 function NotFoundPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#020B24] p-6 text-white">
-      <section className="w-full max-w-lg border border-white/10 bg-white/[0.06] p-8 text-center">
+    <main className="flex min-h-[100dvh] w-full items-center justify-center overflow-x-hidden bg-[#020B24] p-4 text-white sm:p-6">
+      <section className="w-full max-w-lg border border-white/10 bg-white/[0.06] p-5 text-center sm:p-8">
         <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-300">
           404 error
         </p>

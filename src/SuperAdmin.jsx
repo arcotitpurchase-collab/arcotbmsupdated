@@ -231,9 +231,9 @@ function AdminFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-4">
-      <section className="flex max-h-[92vh] w-full max-w-5xl flex-col border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl">
-        <div className="border-b border-white/10 px-5 py-4">
+    <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/70 p-2 sm:items-center sm:p-4">
+      <section className="flex max-h-[95dvh] w-full max-w-full flex-col overflow-x-hidden border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl sm:max-w-5xl">
+        <div className="border-b border-white/10 px-4 py-4 sm:px-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
             {mode === "edit" ? "Edit Admin" : "Add Admin"}
           </p>
@@ -244,7 +244,7 @@ function AdminFormModal({
 
         <form
           onSubmit={handleSubmit}
-          className="min-h-0 flex-1 overflow-y-auto px-5 py-5"
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5"
         >
           {message && (
             <div className="mb-4 border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
@@ -366,7 +366,7 @@ function AdminFormModal({
             </div>
           </section>
 
-          <div className="sticky bottom-0 mt-5 flex flex-wrap justify-end gap-3 border-t border-white/10 bg-[#020B24] py-4">
+          <div className="sticky bottom-0 mt-5 grid gap-3 border-t border-white/10 bg-[#020B24] py-4 sm:flex sm:flex-wrap sm:justify-end">
             <button
               type="button"
               onClick={onCancel}
@@ -392,9 +392,9 @@ function DetailsModal({ admin, onClose, onResetPassword }) {
   const users = getUsersCreatedByAdmin(admin.id);
 
   return (
-    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/70 p-4">
-      <section className="flex max-h-[92vh] w-full max-w-5xl flex-col border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-black/70 p-2 sm:items-center sm:p-4">
+      <section className="flex max-h-[95dvh] w-full max-w-full flex-col overflow-x-hidden border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl sm:max-w-5xl">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-4 py-4 sm:px-5">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
               Admin Details
@@ -403,7 +403,7 @@ function DetailsModal({ admin, onClose, onResetPassword }) {
               {admin.name}
             </h2>
             <p className="mt-1 text-xs text-blue-200">
-              {admin.email}
+              <span className="break-all">{admin.email}</span>
             </p>
           </div>
           <button
@@ -415,7 +415,7 @@ function DetailsModal({ admin, onClose, onResetPassword }) {
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <SummaryCard title="Role" value={SYSTEM_ROLES.ADMIN} />
             <SummaryCard title="Status" value={getAdminStatus(admin)} />
@@ -536,7 +536,47 @@ function DetailsModal({ admin, onClose, onResetPassword }) {
                 This Admin has not created any Users.
               </p>
             ) : (
-              <div className="mt-4 overflow-x-auto">
+              <>
+              <div className="mt-4 space-y-3 lg:hidden">
+                {users.map((user) => (
+                  <article
+                    key={user.id}
+                    className="w-full border border-white/10 bg-[#06184A] p-3 text-xs text-slate-300"
+                  >
+                    <h4 className="break-words font-semibold text-white">
+                      {user.name}
+                    </h4>
+                    <p className="mt-1 break-all text-blue-200">
+                      {user.email}
+                    </p>
+                    <dl className="mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+                      {[
+                        [
+                          "Status",
+                          isDeleted(user)
+                            ? "Deleted"
+                            : user.isActive === false
+                              ? "Disabled"
+                              : "Active",
+                        ],
+                        ["Created", formatDate(user.createdAt)],
+                        ["Last login", formatDate(user.lastLoginAt)],
+                      ].map(([label, value]) => (
+                        <div key={label}>
+                          <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                            {label}
+                          </dt>
+                          <dd className="mt-1 font-semibold text-slate-200">
+                            {value}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </article>
+                ))}
+              </div>
+
+              <div className="mt-4 hidden w-full lg:block">
                 <table className="min-w-[720px] w-full text-left text-xs">
                   <thead className="text-slate-500">
                     <tr>
@@ -581,6 +621,7 @@ function DetailsModal({ admin, onClose, onResetPassword }) {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </section>
         </div>
@@ -593,7 +634,7 @@ function ConfirmDialog({ confirmation, onCancel }) {
   if (!confirmation) return null;
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/70 p-2 sm:items-center sm:p-4">
       <section className="w-full max-w-md border border-white/10 bg-[#020B24] p-5 text-white">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
           Confirm Action
@@ -604,7 +645,7 @@ function ConfirmDialog({ confirmation, onCancel }) {
         <p className="mt-3 text-sm leading-6 text-slate-400">
           {confirmation.message}
         </p>
-        <div className="mt-5 flex justify-end gap-3">
+        <div className="mt-5 grid gap-3 sm:flex sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
@@ -629,7 +670,7 @@ function PasswordDialog({ result, onClose }) {
   if (!result) return null;
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/70 p-2 sm:items-center sm:p-4">
       <section className="w-full max-w-md border border-cyan-400/30 bg-[#020B24] p-5 text-white">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
           Password Reset Complete
@@ -640,7 +681,7 @@ function PasswordDialog({ result, onClose }) {
         <p className="mt-3 text-sm leading-6 text-slate-400">
           Show this temporary password once to the Admin. The stored session never includes passwords.
         </p>
-        <div className="mt-4 border border-white/10 bg-[#06184A] px-4 py-3 font-mono text-sm text-cyan-200">
+        <div className="mt-4 break-all border border-white/10 bg-[#06184A] px-4 py-3 font-mono text-sm text-cyan-200">
           {result.temporaryPassword}
         </div>
         <div className="mt-5 flex justify-end">
@@ -744,7 +785,7 @@ export default function SuperAdmin() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020B24] p-4 text-white sm:p-5 lg:p-6">
+    <main className="min-h-[100dvh] overflow-x-hidden bg-[#020B24] p-3 text-white sm:p-5 lg:p-6">
       <div className="mx-auto max-w-[1800px]">
         <header className="mb-5 border border-white/10 bg-white/[0.05] px-5 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -760,8 +801,8 @@ export default function SuperAdmin() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="border border-white/10 bg-[#06184A] px-4 py-2">
+            <div className="grid w-full grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end">
+              <div className="border border-white/10 bg-[#06184A] px-4 py-2 min-[380px]:col-span-2 sm:col-span-1">
                 <p className="text-[9px] uppercase tracking-[0.13em] text-slate-500">
                   Signed in as
                 </p>
@@ -774,14 +815,14 @@ export default function SuperAdmin() {
                 onClick={() =>
                   setFormState({ mode: "create", value: emptyForm })
                 }
-                className="h-10 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24]"
+                className="h-10 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24] sm:min-w-[116px]"
               >
                 Add Admin
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="h-10 border border-red-400/40 px-4 text-sm font-semibold text-red-300"
+                className="h-10 border border-red-400/40 px-4 text-sm font-semibold text-red-300 sm:min-w-[116px]"
               >
                 Logout
               </button>
@@ -795,7 +836,7 @@ export default function SuperAdmin() {
           </div>
         )}
 
-        <section className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
+        <section className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
           <SummaryCard title="Total Admins" value={summary.totalAdmins} />
           <SummaryCard title="Active" value={summary.activeAdmins} />
           <SummaryCard title="Disabled" value={summary.disabledAdmins} />
@@ -834,7 +875,138 @@ export default function SuperAdmin() {
             </label>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="space-y-3 p-3 min-[1800px]:hidden">
+            {admins.map((admin) => (
+              <article
+                key={admin.id}
+                className="w-full border border-white/10 bg-[#06184A] p-4 text-xs text-slate-300"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words text-base font-semibold text-white">
+                      {admin.name}
+                    </h3>
+                    <p className="mt-1 break-all text-[11px] text-blue-200">
+                      {admin.email}
+                    </p>
+                  </div>
+                  <StatusBadge admin={admin} />
+                </div>
+
+                <dl className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+                  {[
+                    ["Users", admin.summary.userCount],
+                    ["Access Scope", "Full Project"],
+                    ["Permissions", admin.permissions.length],
+                    [
+                      "Consumption",
+                      `${formatNumber(admin.summary.consumptionKwh)} kWh`,
+                    ],
+                    ["Charges", formatCurrency(admin.summary.charges)],
+                    ["Created", formatDate(admin.createdAt)],
+                    ["Last Login", formatDate(admin.lastLoginAt)],
+                  ].map(([label, value]) => (
+                    <div key={label} className="min-w-0">
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        {label}
+                      </dt>
+                      <dd className="mt-1 break-words font-semibold text-slate-200">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="mt-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => openDetails(admin)}
+                    className="flex h-10 w-full items-center justify-center border border-cyan-400/40 px-2 text-[11px] font-semibold text-cyan-300"
+                  >
+                    View Details
+                  </button>
+                  {!isDeleted(admin) && (
+                    <button
+                      type="button"
+                      onClick={() => openEdit(admin)}
+                      className="flex h-10 w-full items-center justify-center border border-white/15 px-2 text-[11px] font-semibold text-slate-300"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {!isDeleted(admin) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        runAction(
+                          admin.isActive === false
+                            ? "Enable Admin"
+                            : "Disable Admin",
+                          `${admin.isActive === false ? "Enable" : "Disable"} ${admin.name}?`,
+                          () => {
+                            setAdminStatus(
+                              admin.id,
+                              admin.isActive === false
+                            );
+                            setNotice("Admin status updated.");
+                          }
+                        )
+                      }
+                      className="flex h-10 w-full items-center justify-center border border-amber-400/40 px-2 text-[11px] font-semibold text-amber-300"
+                    >
+                      {admin.isActive === false ? "Enable" : "Disable"}
+                    </button>
+                  )}
+                  {!isDeleted(admin) && (
+                    <button
+                      type="button"
+                      onClick={() => handleResetPassword(admin)}
+                      className="flex h-10 w-full items-center justify-center border border-cyan-400/40 px-2 text-[11px] font-semibold text-cyan-300"
+                    >
+                      Reset Password
+                    </button>
+                  )}
+                  {!isDeleted(admin) ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        runAction(
+                          "Delete Admin",
+                          `Soft-delete ${admin.name}? Users, assignments and history will be preserved.`,
+                          () => {
+                            softDeleteAdmin(admin.id);
+                            setNotice("Admin soft-deleted.");
+                          }
+                        )
+                      }
+                      className="flex h-10 w-full items-center justify-center border border-red-400/40 px-2 text-[11px] font-semibold text-red-300"
+                    >
+                      Delete
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        runAction(
+                          "Restore Admin",
+                          `Restore ${admin.name}? The account will remain disabled until you enable it.`,
+                          () => {
+                            restoreAdmin(admin.id);
+                            setNotice("Admin restored as disabled.");
+                          }
+                        )
+                      }
+                      className="flex h-10 w-full items-center justify-center border border-emerald-400/40 px-2 text-[11px] font-semibold text-emerald-300"
+                    >
+                      Restore
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden w-full min-[1800px]:block">
             <table className="min-w-[1500px] w-full text-left text-xs">
               <thead className="bg-white/[0.03] text-slate-400">
                 <tr>
@@ -894,7 +1066,7 @@ export default function SuperAdmin() {
                       {formatDate(admin.lastLoginAt)}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex min-w-[240px] flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={() => openDetails(admin)}

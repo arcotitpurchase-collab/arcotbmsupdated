@@ -136,6 +136,52 @@ function StatusBadge({ user }) {
   );
 }
 
+const toLabelArray = (values) =>
+  (Array.isArray(values) ? values : [])
+    .map((value) => {
+      if (value && typeof value === "object") {
+        return value.name || value.label || value.title || value.id || "";
+      }
+
+      return value;
+    })
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+
+function BadgeList({ values, tone = "slate" }) {
+  const labels = toLabelArray(values);
+  const styles =
+    tone === "cyan"
+      ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
+      : "border-white/10 bg-[#06184A] text-slate-300";
+
+  if (labels.length === 0) {
+    return <span className="text-slate-500">—</span>;
+  }
+
+  return (
+    <div className="flex max-w-full flex-wrap gap-1">
+      {labels.map((label) => (
+        <span
+          key={label}
+          className={`max-w-[180px] truncate border px-2 py-1 text-[10px] font-semibold ${styles}`}
+          title={label}
+        >
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function PermissionBadgeList({ permissions }) {
+  const labels = toLabelArray(permissions).map(
+    (permission) => permissionLabels[permission] || permission
+  );
+
+  return <BadgeList values={labels} tone="cyan" />;
+}
+
 function TextField({
   label,
   name,
@@ -523,9 +569,9 @@ function UserFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-4">
-      <section className="flex max-h-[92vh] w-full max-w-5xl flex-col border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl">
-        <div className="border-b border-white/10 px-5 py-4">
+    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-3 sm:p-4">
+      <section className="flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl">
+        <div className="border-b border-white/10 px-4 py-4 sm:px-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
             {mode === "edit" ? "Edit User" : "Add User"}
           </p>
@@ -536,7 +582,7 @@ function UserFormModal({
 
         <form
           onSubmit={submit}
-          className="min-h-0 flex-1 overflow-y-auto px-5 py-5"
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5"
         >
           {message && (
             <div className="mb-4 border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
@@ -622,18 +668,18 @@ function UserFormModal({
             error={errors.assignedZoneIds}
           />
 
-          <div className="sticky bottom-0 mt-5 flex flex-wrap justify-end gap-3 border-t border-white/10 bg-[#020B24] py-4">
+          <div className="sticky bottom-0 mt-5 flex flex-col gap-3 border-t border-white/10 bg-[#020B24] py-4 sm:flex-row sm:flex-wrap sm:justify-end">
             <button
               type="button"
               onClick={onCancel}
-              className="h-10 border border-white/15 px-4 text-sm font-semibold text-slate-300"
+              className="h-10 w-full border border-white/15 px-4 text-sm font-semibold text-slate-300 sm:w-auto"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="h-10 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 w-full border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-[#020B24] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {isSaving ? "Saving..." : "Save User"}
             </button>
@@ -654,15 +700,15 @@ function DetailsModal({
   onDelete,
 }) {
   return (
-    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/70 p-4">
-      <section className="flex max-h-[92vh] w-full max-w-5xl flex-col border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl">
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
+      <section className="flex max-h-[95dvh] w-full max-w-full flex-col overflow-x-hidden border border-cyan-400/30 bg-[#020B24] text-white shadow-2xl sm:max-h-[92dvh] sm:max-w-5xl">
         <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
               User Details
             </p>
-            <h2 className="mt-1 text-xl font-semibold">{user.name}</h2>
-            <p className="mt-1 text-xs text-blue-200">{user.email}</p>
+            <h2 className="mt-1 break-words text-lg font-semibold sm:text-xl">{user.name}</h2>
+            <p className="mt-1 break-all text-xs text-blue-200">{user.email}</p>
           </div>
           <button
             type="button"
@@ -673,7 +719,7 @@ function DetailsModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-5">
           <div className="grid gap-4 lg:grid-cols-3">
             <SummaryCard title="Status" value={getStatusText(user)} />
             <SummaryCard
@@ -797,8 +843,8 @@ function ConfirmDialog({ confirmation, onCancel }) {
   if (!confirmation) return null;
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/70 p-4">
-      <section className="w-full max-w-md border border-white/10 bg-[#020B24] p-5 text-white">
+    <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
+      <section className="max-h-[95dvh] w-full max-w-md overflow-y-auto border border-white/10 bg-[#020B24] p-5 text-white">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300">
           Confirm Action
         </p>
@@ -808,7 +854,7 @@ function ConfirmDialog({ confirmation, onCancel }) {
         <p className="mt-3 text-sm leading-6 text-slate-400">
           {confirmation.message}
         </p>
-        <div className="mt-5 flex justify-end gap-3">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:justify-end">
           <button
             type="button"
             onClick={onCancel}
@@ -833,8 +879,8 @@ function PasswordDialog({ result, onClose }) {
   if (!result) return null;
 
   return (
-    <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/70 p-4">
-      <section className="w-full max-w-md border border-cyan-400/30 bg-[#020B24] p-5 text-white">
+    <div className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
+      <section className="max-h-[95dvh] w-full max-w-md overflow-y-auto border border-cyan-400/30 bg-[#020B24] p-5 text-white">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
           Password Reset Complete
         </p>
@@ -844,7 +890,7 @@ function PasswordDialog({ result, onClose }) {
         <p className="mt-3 text-sm leading-6 text-slate-400">
           Show this temporary password once to the User. The previous password will no longer work.
         </p>
-        <div className="mt-4 border border-white/10 bg-[#06184A] px-4 py-3 font-mono text-sm text-cyan-200">
+        <div className="mt-4 break-all border border-white/10 bg-[#06184A] px-4 py-3 font-mono text-sm text-cyan-200">
           {result.temporaryPassword}
         </div>
         <div className="mt-5 flex justify-end">
@@ -1516,15 +1562,112 @@ export default function AdminDashboard() {
   };
 
   const headerButtonBase =
-    "flex h-10 min-w-[132px] items-center justify-center whitespace-nowrap border px-4 text-sm font-semibold transition-colors duration-200";
+    "flex h-10 w-full items-center justify-center whitespace-nowrap border px-3 text-xs font-semibold transition-colors duration-200 sm:w-auto sm:min-w-[132px] sm:px-4 sm:text-sm";
 
   const tableButtonBase =
-    "flex h-8 min-w-[106px] items-center justify-center whitespace-nowrap border px-3 text-[11px] font-semibold transition-colors duration-200";
+    "flex h-8 min-w-[96px] items-center justify-center whitespace-nowrap border px-2 text-[10px] font-semibold transition-colors duration-200 sm:min-w-[106px] sm:px-3 sm:text-[11px]";
+
+  const renderUserActions = (user) => (
+    <div className="flex min-w-[220px] flex-wrap gap-2">
+      {can(ADMIN_PERMISSIONS.USER_VIEW) && (
+        <button
+          type="button"
+          onClick={() => openDetails(user)}
+          className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
+        >
+          View Details
+        </button>
+      )}
+
+      {!isDeleted(user) && can(ADMIN_PERMISSIONS.USER_EDIT) && (
+        <button
+          type="button"
+          onClick={() => openEdit(user)}
+          className={`${tableButtonBase} border-white/15 text-slate-300 hover:border-white/30 hover:bg-white/5 hover:text-white`}
+        >
+          Edit
+        </button>
+      )}
+
+      {!isDeleted(user) &&
+        can(ADMIN_PERMISSIONS.USER_ENABLE_DISABLE) && (
+          <button
+            type="button"
+            onClick={() =>
+              runAction(
+                user.isActive === false ? "Enable User" : "Disable User",
+                `${user.isActive === false ? "Enable" : "Disable"} ${user.name}?`,
+                () => {
+                  setUserStatus(
+                    currentAdmin,
+                    user.id,
+                    user.isActive === false
+                  );
+                  setNotice("User status updated.");
+                }
+              )
+            }
+            className={`${tableButtonBase} border-amber-400/40 text-amber-300 hover:border-amber-300 hover:bg-amber-400/10`}
+          >
+            {user.isActive === false ? "Enable" : "Disable"}
+          </button>
+        )}
+
+      {!isDeleted(user) &&
+        can(ADMIN_PERMISSIONS.USER_PASSWORD_RESET) && (
+          <button
+            type="button"
+            onClick={() => handleResetPassword(user)}
+            className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
+          >
+            Reset Password
+          </button>
+        )}
+
+      {!isDeleted(user)
+        ? can(ADMIN_PERMISSIONS.USER_DELETE) && (
+            <button
+              type="button"
+              onClick={() =>
+                runAction(
+                  "Delete User",
+                  `Soft-delete ${user.name}? Assignments and history will be preserved.`,
+                  () => {
+                    softDeleteUser(currentAdmin, user.id);
+                    setNotice("User soft-deleted.");
+                  }
+                )
+              }
+              className={`${tableButtonBase} border-red-400/40 text-red-300 hover:border-red-300 hover:bg-red-400/10`}
+            >
+              Delete
+            </button>
+          )
+        : can(ADMIN_PERMISSIONS.USER_DELETE) && (
+            <button
+              type="button"
+              onClick={() =>
+                runAction(
+                  "Restore User",
+                  `Restore ${user.name}? The account will remain disabled until you enable it.`,
+                  () => {
+                    restoreUser(currentAdmin, user.id);
+                    setNotice("User restored as disabled.");
+                  }
+                )
+              }
+              className={`${tableButtonBase} border-emerald-400/40 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-400/10`}
+            >
+              Restore
+            </button>
+          )}
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-[#020B24] p-4 text-white sm:p-5 lg:p-6">
+    <main className="min-h-[100dvh] w-full overflow-x-hidden bg-[#020B24] p-3 text-white sm:p-5 lg:p-6">
       <div className="mx-auto w-full max-w-[1800px]">
-        <header className="mb-5 border border-white/10 bg-white/[0.05] px-5 py-4">
+        <header className="mb-5 border border-white/10 bg-white/[0.05] px-3 py-4 sm:px-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-cyan-300">
@@ -1541,7 +1684,7 @@ export default function AdminDashboard() {
               </p>
             </div>
 
-            <div className="flex w-full flex-wrap items-center gap-3 xl:w-auto xl:justify-end">
+            <div className="grid w-full grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:flex-wrap sm:items-center xl:w-auto xl:justify-end">
               <button
                 type="button"
                 onClick={() => navigate("/dashboard")}
@@ -1550,7 +1693,7 @@ export default function AdminDashboard() {
                 Dashboard
               </button>
 
-              <div className="flex h-10 min-w-[190px] max-w-[240px] flex-col justify-center border border-white/10 bg-[#06184A] px-4">
+              <div className="flex h-10 min-w-0 flex-col justify-center border border-white/10 bg-[#06184A] px-3 min-[380px]:col-span-2 sm:col-span-1 sm:min-w-[190px] sm:max-w-[240px] sm:px-4">
                 <p className="text-[9px] font-medium uppercase tracking-[0.13em] text-slate-500">
                   Signed in as
                 </p>
@@ -1589,7 +1732,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <section className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-9">
+        <section className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-9">
           <SummaryCard
             title="Total Users"
             value={summary.totalUsers}
@@ -1665,289 +1808,261 @@ export default function AdminDashboard() {
             </label>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1600px] table-fixed text-left text-xs">
-              <thead className="bg-white/[0.03] text-slate-400">
+          <div className="space-y-3 p-3 md:hidden">
+            {users.length === 0 ? (
+              <p className="border border-white/10 bg-[#06184A] px-4 py-8 text-center text-sm text-slate-400">
+                No assigned user accounts found.
+              </p>
+            ) : (
+              users.map((user, index) => (
+                <article
+                  key={user.id}
+                  className="w-full border border-white/10 bg-[#06184A] p-4 text-xs text-slate-300"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.13em] text-slate-500">
+                        #{index + 1}
+                      </p>
+                      <h3 className="mt-1 break-words text-base font-semibold text-white">
+                        {user.name || "—"}
+                      </h3>
+                      <p className="mt-1 break-all text-[11px] text-blue-200">
+                        {user.email || "—"}
+                      </p>
+                    </div>
+                    <StatusBadge user={user} />
+                  </div>
+
+                  <dl className="mt-4 grid grid-cols-1 gap-3">
+                    <div>
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Assigned Building
+                      </dt>
+                      <dd className="mt-1">
+                        <BadgeList values={user.scopeLabels?.buildings} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Assigned Wing
+                      </dt>
+                      <dd className="mt-1">
+                        <BadgeList values={user.scopeLabels?.blocks} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Assigned Floor
+                      </dt>
+                      <dd className="mt-1">
+                        <BadgeList values={user.scopeLabels?.floors} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Assigned Zone
+                      </dt>
+                      <dd className="mt-1">
+                        <BadgeList values={user.scopeLabels?.zones} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Permissions
+                      </dt>
+                      <dd className="mt-1">
+                        <PermissionBadgeList permissions={user.permissions} />
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-[11px]">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Consumption
+                      </p>
+                      <p className="mt-1 font-semibold text-white">
+                        {formatNumber(user.consumption)} kWh
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Charges
+                      </p>
+                      <p className="mt-1 font-semibold text-cyan-300">
+                        {formatCurrency(user.charges)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Created
+                      </p>
+                      <p className="mt-1 font-semibold text-slate-200">
+                        {formatDate(user.createdAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-[0.12em] text-slate-500">
+                        Last Login
+                      </p>
+                      <p className="mt-1 font-semibold text-slate-200">
+                        {formatDate(user.lastLoginAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">{renderUserActions(user)}</div>
+                </article>
+              ))
+            )}
+          </div>
+
+          <div className="hidden w-full overflow-hidden md:block">
+            <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[1540px] border-collapse text-left text-xs">
+              <thead className="bg-white/[0.06] text-slate-300">
                 <tr>
-                  <th className="w-[140px] px-4 py-3 font-medium">
-                    Name
+                  <th className="w-[64px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    S.No
                   </th>
 
-                  <th className="w-[200px] px-4 py-3 font-medium">
+                  <th className="w-[150px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    User Name
+                  </th>
+
+                  <th className="w-[210px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
                     Email
                   </th>
 
-                  <th className="w-[110px] px-4 py-3 font-medium">
+                  <th className="w-[110px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
                     Status
                   </th>
 
-                  <th className="w-[130px] px-4 py-3 font-medium">
-                    Client
+                  <th className="w-[150px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Assigned Building
                   </th>
 
-                  <th className="w-[130px] px-4 py-3 font-medium">
-                    Building
+                  <th className="w-[150px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Assigned Wing
                   </th>
 
-                  <th className="w-[120px] px-4 py-3 font-medium">
-                    Block
+                  <th className="w-[150px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Assigned Floor
                   </th>
 
-                  <th className="w-[90px] px-4 py-3 text-center font-medium">
-                    Floors
+                  <th className="w-[180px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Assigned Zone
                   </th>
 
-                  <th className="w-[110px] px-4 py-3 text-center font-medium">
+                  <th className="w-[190px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
                     Permissions
                   </th>
 
-                  <th className="w-[130px] px-4 py-3 font-medium">
-                    Consumption
+                  <th className="w-[135px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Current Consumption
                   </th>
 
-                  <th className="w-[120px] px-4 py-3 font-medium">
-                    Charges
+                  <th className="w-[135px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Consumption Charges
                   </th>
 
-                  <th className="w-[125px] px-4 py-3 font-medium">
-                    Created
+                  <th className="w-[140px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
+                    Created Date
                   </th>
 
-                  <th className="w-[125px] px-4 py-3 font-medium">
+                  <th className="w-[140px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
                     Last Login
                   </th>
 
-                  <th className="w-[370px] px-4 py-3 font-medium">
+                  <th className="w-[250px] border-b border-white/10 px-3 py-3 font-semibold uppercase tracking-[0.08em]">
                     Actions
                   </th>
                 </tr>
               </thead>
 
-              <tbody>
-                {users.map((user) => (
+              <tbody className="divide-y divide-white/5">
+                {users.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={14}
+                      className="px-4 py-10 text-center text-sm text-slate-400"
+                    >
+                      No assigned user accounts found.
+                    </td>
+                  </tr>
+                ) : (
+                users.map((user, index) => (
                   <tr
                     key={user.id}
-                    className="border-t border-white/5 align-middle transition-colors hover:bg-white/[0.02]"
+                    className="align-top transition-colors odd:bg-white/[0.015] hover:bg-cyan-400/[0.04]"
                   >
-                    <td className="px-4 py-3 font-medium text-white">
+                    <td className="px-3 py-3 font-semibold text-slate-400">
+                      {index + 1}
+                    </td>
+
+                    <td className="px-3 py-3 font-medium text-white">
                       <p className="truncate" title={user.name}>
-                        {user.name}
+                        {user.name || "—"}
                       </p>
                     </td>
 
-                    <td className="px-4 py-3 text-blue-200">
+                    <td className="px-3 py-3 text-blue-200">
                       <p className="truncate" title={user.email}>
-                        {user.email}
+                        {user.email || "—"}
                       </p>
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <StatusBadge user={user} />
                     </td>
 
-                    <td className="px-4 py-3">
-                      <p
-                        className="truncate"
-                        title={
-                          user.scopeLabels?.clients?.[0] || "-"
-                        }
-                      >
-                        {user.scopeLabels?.clients?.[0] || "-"}
-                      </p>
+                    <td className="px-3 py-3">
+                      <BadgeList values={user.scopeLabels?.buildings} />
                     </td>
 
-                    <td className="px-4 py-3">
-                      <p
-                        className="truncate"
-                        title={
-                          user.scopeLabels?.buildings?.[0] || "-"
-                        }
-                      >
-                        {user.scopeLabels?.buildings?.[0] ||
-                          "-"}
-                      </p>
+                    <td className="px-3 py-3">
+                      <BadgeList values={user.scopeLabels?.blocks} />
                     </td>
 
-                    <td className="px-4 py-3">
-                      <p
-                        className="truncate"
-                        title={
-                          user.scopeLabels?.blocks?.[0] || "-"
-                        }
-                      >
-                        {user.scopeLabels?.blocks?.[0] || "-"}
-                      </p>
+                    <td className="px-3 py-3">
+                      <BadgeList values={user.scopeLabels?.floors} />
                     </td>
 
-                    <td className="px-4 py-3 text-center">
-                      {user.assignedFloorIds?.length || 0}
+                    <td className="px-3 py-3">
+                      <BadgeList values={user.scopeLabels?.zones} />
                     </td>
 
-                    <td className="px-4 py-3 text-center">
-                      {user.permissions?.length || 0}
+                    <td className="px-3 py-3">
+                      <PermissionBadgeList permissions={user.permissions} />
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 font-semibold text-slate-200">
                       {formatNumber(user.consumption)} kWh
                     </td>
 
-                    <td className="px-4 py-3 text-cyan-300">
+                    <td className="px-3 py-3 font-semibold text-cyan-300">
                       {formatCurrency(user.charges)}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 text-slate-300">
                       {formatDate(user.createdAt)}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 text-slate-300">
                       {formatDate(user.lastLoginAt)}
                     </td>
 
-                    <td className="px-4 py-3">
-                      <div className="grid grid-cols-3 gap-2">
-                        {can(ADMIN_PERMISSIONS.USER_VIEW) && (
-                          <button
-                            type="button"
-                            onClick={() => openDetails(user)}
-                            className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
-                          >
-                            View Details
-                          </button>
-                        )}
-
-                        {!isDeleted(user) &&
-                          can(
-                            ADMIN_PERMISSIONS.USER_EDIT
-                          ) && (
-                            <button
-                              type="button"
-                              onClick={() => openEdit(user)}
-                              className={`${tableButtonBase} border-white/15 text-slate-300 hover:border-white/30 hover:bg-white/5 hover:text-white`}
-                            >
-                              Edit
-                            </button>
-                          )}
-
-                        {!isDeleted(user) &&
-                          can(
-                            ADMIN_PERMISSIONS.USER_ENABLE_DISABLE
-                          ) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                runAction(
-                                  user.isActive === false
-                                    ? "Enable User"
-                                    : "Disable User",
-                                  `${
-                                    user.isActive === false
-                                      ? "Enable"
-                                      : "Disable"
-                                  } ${user.name}?`,
-                                  () => {
-                                    setUserStatus(
-                                      currentAdmin,
-                                      user.id,
-                                      user.isActive === false
-                                    );
-
-                                    setNotice(
-                                      "User status updated."
-                                    );
-                                  }
-                                )
-                              }
-                              className={`${tableButtonBase} border-amber-400/40 text-amber-300 hover:border-amber-300 hover:bg-amber-400/10`}
-                            >
-                              {user.isActive === false
-                                ? "Enable"
-                                : "Disable"}
-                            </button>
-                          )}
-
-                        {!isDeleted(user) &&
-                          can(
-                            ADMIN_PERMISSIONS.USER_PASSWORD_RESET
-                          ) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleResetPassword(user)
-                              }
-                              className={`${tableButtonBase} border-cyan-400/40 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-400/10`}
-                            >
-                              Reset Password
-                            </button>
-                          )}
-
-                        {!isDeleted(user) ? (
-                          can(
-                            ADMIN_PERMISSIONS.USER_DELETE
-                          ) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                runAction(
-                                  "Delete User",
-                                  `Soft-delete ${user.name}? Assignments and history will be preserved.`,
-                                  () => {
-                                    softDeleteUser(
-                                      currentAdmin,
-                                      user.id
-                                    );
-
-                                    setNotice(
-                                      "User soft-deleted."
-                                    );
-                                  }
-                                )
-                              }
-                              className={`${tableButtonBase} border-red-400/40 text-red-300 hover:border-red-300 hover:bg-red-400/10`}
-                            >
-                              Delete
-                            </button>
-                          )
-                        ) : (
-                          can(
-                            ADMIN_PERMISSIONS.USER_DELETE
-                          ) && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                runAction(
-                                  "Restore User",
-                                  `Restore ${user.name}? The account will remain disabled until you enable it.`,
-                                  () => {
-                                    restoreUser(
-                                      currentAdmin,
-                                      user.id
-                                    );
-
-                                    setNotice(
-                                      "User restored as disabled."
-                                    );
-                                  }
-                                )
-                              }
-                              className={`${tableButtonBase} border-emerald-400/40 text-emerald-300 hover:border-emerald-300 hover:bg-emerald-400/10`}
-                            >
-                              Restore
-                            </button>
-                          )
-                        )}
-                      </div>
+                    <td className="px-3 py-3">
+                      {renderUserActions(user)}
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
+            </div>
           </div>
-
-          {users.length === 0 && (
-            <p className="px-5 py-8 text-center text-sm text-slate-400">
-              No Users exist for this Admin yet.
-            </p>
-          )}
         </section>
       </div>
 
