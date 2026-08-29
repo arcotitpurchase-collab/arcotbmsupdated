@@ -3283,6 +3283,7 @@
 
 
 
+
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -3564,21 +3565,8 @@ export default function FloorOverview() {
   ).length;
 
   return (
-    <>
-      <style>{`
-        @media (max-height: 760px) and (min-width: 1024px) {
-          .floor-responsive-density {
-            font-size: 0.96rem;
-          }
-        }
-        @media (max-height: 680px) and (min-width: 1024px) {
-          .floor-responsive-density {
-            font-size: 0.92rem;
-          }
-        }
-      `}</style>
     <main
-      className={`floor-responsive-density flex w-full min-w-0 flex-col overflow-x-hidden bg-[#D8E2E8] font-sans text-[#132131] ${
+      className={`flex flex-col bg-[#D8E2E8] font-sans text-[#132131] ${
         activeView === "analytics"
           ? "min-h-[100dvh] overflow-x-hidden lg:h-[100dvh] lg:min-h-0 lg:overflow-hidden"
           : "min-h-[100dvh] overflow-x-hidden"
@@ -3593,8 +3581,8 @@ export default function FloorOverview() {
         </div>
       )}
 
-      <header className="sticky top-0 z-[1000] min-h-[72px] shrink-0 border-b border-[#D2B778]/70 bg-[linear-gradient(90deg,#071421_0%,#0A2034_48%,#0B2A42_100%)] px-[clamp(10px,1.3vw,20px)] py-[clamp(8px,1.1vh,12px)] text-white shadow-[0_10px_30px_rgba(2,20,38,0.24)]">
-        <div className="flex w-full min-w-0 flex-col gap-[clamp(8px,1vw,12px)] xl:flex-row xl:items-center xl:justify-between">
+      <header className="sticky top-0 z-[1000] min-h-[72px] shrink-0 border-b border-[#D2B778]/70 bg-[linear-gradient(90deg,#071421_0%,#0A2034_48%,#0B2A42_100%)] px-5 py-3 text-white shadow-[0_10px_30px_rgba(2,20,38,0.24)]">
+        <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <Link to="/dashboard" className="flex min-w-0 items-center no-underline">
             <div className="min-w-0">
               <h1 className="truncate text-[22px] font-semibold uppercase leading-none tracking-[0.18em] text-white sm:text-[26px]">
@@ -3607,12 +3595,12 @@ export default function FloorOverview() {
               </span>
             </div>
 
-            <div className="ml-[clamp(10px,1.3vw,20px)] hidden h-[clamp(44px,4vw,54px)] border-l border-[#385674] sm:block" />
+            <div className="ml-5 hidden h-[54px] border-l border-[#385674] sm:block" />
 
             <img
               src={prestigeLogo}
               alt="Prestige Group"
-              className="ml-[clamp(10px,1.3vw,20px)] hidden h-[clamp(42px,4vw,52px)] w-[clamp(76px,7vw,100px)] object-contain sm:block"
+              className="ml-5 hidden h-[52px] w-[100px] object-contain sm:block"
             />
           </Link>
 
@@ -3626,7 +3614,7 @@ export default function FloorOverview() {
             </h2>
           </div>
 
-          <div className="grid w-full min-w-0 grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-[clamp(6px,0.8vw,12px)]">
+          <div className="grid w-full grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
             <Link
               to={`/building/${buildingId}`}
               className="flex h-[44px] items-center justify-center rounded-[8px] border border-[#6E97B5]/80 bg-[linear-gradient(180deg,#24698F,#174D70)] px-5 text-[10px] font-black uppercase tracking-[0.13em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_7px_16px_rgba(0,0,0,0.18)] transition hover:-translate-y-px hover:brightness-110 sm:min-w-[110px]"
@@ -3667,16 +3655,16 @@ export default function FloorOverview() {
       </header>
 
       <section
-        className={`relative flex w-full min-w-0 flex-col overflow-x-hidden px-[clamp(10px,1.3vw,20px)] py-[clamp(10px,1.5vh,20px)] ${
+        className={`relative flex w-full flex-col overflow-hidden px-5 py-5 ${
           activeView === "analytics"
-            ? "min-h-0 flex-1 overflow-y-auto 2xl:overflow-hidden"
-            : "min-h-0 flex-1 overflow-y-auto"
+            ? "min-h-0 flex-1 overflow-y-auto lg:overflow-hidden"
+            : "flex-1"
         }`}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(255,255,255,0.98),transparent_28%),radial-gradient(circle_at_88%_10%,rgba(210,229,236,0.82),transparent_31%),radial-gradient(circle_at_50%_100%,rgba(174,198,212,0.68),transparent_42%),linear-gradient(135deg,#C9D6DE_0%,#F8FAFB_48%,#C7D5DD_100%)]" />
         <div className="pointer-events-none absolute inset-0 opacity-45 bg-[linear-gradient(90deg,transparent_0%,rgba(92,113,119,0.10)_18%,transparent_31%,rgba(60,83,90,0.09)_52%,transparent_72%,rgba(94,119,112,0.10)_90%)]" />
 
-        <div className="relative z-10 mb-[clamp(10px,1.2vh,16px)] flex shrink-0 flex-wrap items-center justify-between gap-[clamp(8px,1vw,12px)] rounded-[clamp(14px,1.4vw,22px)] border border-white/80 bg-white/88 px-[clamp(12px,1.4vw,20px)] py-[clamp(9px,1vh,12px)] shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl">
+        <div className="relative z-10 mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-[22px] border border-white/80 bg-white/88 px-5 py-3 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#004AAD]">
               {activeView === "monitoring"
@@ -3715,7 +3703,7 @@ export default function FloorOverview() {
         <div className="relative z-10 min-h-0 flex-1">
         {activeView === "monitoring" ? (
           <>
-            <div className="mb-3 grid grid-cols-1 gap-[clamp(8px,0.9vw,12px)] min-[520px]:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <SummaryTile
                 label="Floor Load"
                 value={`${totalFloorLoad.toLocaleString("en-IN")} kW`}
@@ -3750,8 +3738,8 @@ export default function FloorOverview() {
               />
             </div>
 
-            <section className="mb-4 min-w-0 overflow-hidden rounded-[clamp(16px,1.5vw,24px)] border border-white/75 bg-white/52 text-[#132131] shadow-[0_20px_44px_rgba(15,36,56,0.11),inset_0_1px_0_rgba(255,255,255,0.82)] backdrop-blur-xl">
-              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#C8D5DC]/75 bg-[linear-gradient(90deg,#0A2034,#0B2A42)] px-[clamp(12px,1.4vw,20px)] py-[clamp(10px,1.2vh,16px)] text-white">
+            <section className="mb-4 overflow-hidden rounded-[24px] border border-white/75 bg-white/52 text-[#132131] shadow-[0_20px_44px_rgba(15,36,56,0.11),inset_0_1px_0_rgba(255,255,255,0.82)] backdrop-blur-xl">
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#C8D5DC]/75 bg-[linear-gradient(90deg,#0A2034,#0B2A42)] px-5 py-4 text-white">
                 <div>
                  
 
@@ -3766,7 +3754,7 @@ export default function FloorOverview() {
                 </span>
               </header>
 
-              <div className="grid min-w-0 grid-cols-1 gap-[clamp(8px,0.8vw,12px)] p-[clamp(8px,1vw,12px)] sm:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2 xl:grid-cols-4">
                 {floorClientRecords.length === 0 ? (
                   <div className="col-span-full rounded-[18px] border border-slate-200 bg-white/80 px-5 py-8 text-center">
                     <p className="text-[12px] font-black uppercase tracking-[0.1em] text-[#081F5C]">
@@ -3795,7 +3783,7 @@ export default function FloorOverview() {
                     <Wrapper
                       key={client.zone.id || `${buildingId}-${floorId}-${client.routeId}`}
                       {...wrapperProps}
-                      className={`group relative flex min-h-[clamp(140px,18vh,158px)] min-w-0 w-full flex-col justify-between overflow-hidden rounded-[clamp(14px,1.3vw,20px)] border px-[clamp(12px,1.3vw,20px)] py-[clamp(10px,1.2vh,16px)] text-left transition duration-200 ${
+                      className={`group relative flex min-h-[158px] w-full flex-col justify-between overflow-hidden rounded-[20px] border px-5 py-4 text-left transition duration-200 ${
                         client.locked
                           ? "cursor-not-allowed border-slate-300/70 bg-slate-100/75 text-slate-500 opacity-75"
                           : "border-white/85 bg-[linear-gradient(145deg,rgba(255,255,255,0.97),rgba(235,242,246,0.92))] text-[#132131] shadow-[0_16px_34px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.98)] hover:-translate-y-1 hover:border-white hover:shadow-[0_24px_48px_rgba(15,36,56,0.15)]"
@@ -3853,7 +3841,7 @@ export default function FloorOverview() {
               </div>
             </section>
 
-            <section className="grid min-w-0 grid-cols-1 gap-[clamp(9px,0.9vw,12px)] md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
+            <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 xl:auto-rows-fr">
               {floorMonitoring.map((system) => (
                 <FloorSystemCard
                   key={system.id}
@@ -3879,8 +3867,8 @@ export default function FloorOverview() {
         </div>
       </section>
 
-      <footer className="border-t border-white/60 bg-white/72 px-[clamp(10px,1.3vw,20px)] py-2 text-[9px] text-slate-500 shadow-[0_-8px_24px_rgba(15,36,56,0.05)] backdrop-blur-xl">
-        <div className="flex flex-wrap items-center justify-between gap-2 font-semibold">
+      <footer className="border-t border-white/60 bg-white/72 px-5 py-2 text-[9px] text-slate-500 shadow-[0_-8px_24px_rgba(15,36,56,0.05)] backdrop-blur-xl">
+        <div className="flex items-center justify-between font-semibold">
           <p>© 2026 Arcot Industries. All systems operational.</p>
 
           <span className="flex items-center gap-2 text-emerald-600">
@@ -3890,7 +3878,6 @@ export default function FloorOverview() {
         </div>
       </footer>
     </main>
-    </>
   );
 }
 
@@ -3901,7 +3888,7 @@ function FloorViewSelector({
   canViewReports = false,
 }) {
   return (
-    <div className="flex max-w-full overflow-hidden rounded-[10px] border border-[#8EA9B8] bg-white/90 shadow-[0_6px_14px_rgba(15,36,56,0.06)] backdrop-blur-xl">
+    <div className="flex overflow-hidden rounded-[10px] border border-[#8EA9B8] bg-white/90 shadow-[0_6px_14px_rgba(15,36,56,0.06)] backdrop-blur-xl">
       <button
         type="button"
         onClick={() => onChange("monitoring")}
@@ -4102,7 +4089,7 @@ function FloorAnalyticsView({
   };
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-col gap-3 2xl:grid 2xl:h-full 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-hidden">
+    <div className="flex min-h-0 flex-col gap-3 lg:grid lg:h-full lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-white/80 bg-white/88 px-4 py-3 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl">
         <div className="flex flex-wrap items-center gap-3">
           <div>
@@ -4114,7 +4101,7 @@ function FloorAnalyticsView({
             </h3>
           </div>
 
-          <div className="flex max-w-full overflow-hidden rounded-[10px] border border-[#8EA9B8] bg-white/90 shadow-[0_6px_14px_rgba(15,36,56,0.06)]">
+          <div className="flex overflow-hidden rounded-[10px] border border-[#8EA9B8] bg-white/90 shadow-[0_6px_14px_rgba(15,36,56,0.06)]">
             {Object.entries(FLOOR_PERIODS).map(([key, item]) => (
               <button
                 key={key}
@@ -4197,7 +4184,7 @@ function FloorAnalyticsView({
         </div>
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <AnalyticsTile
           label="Floor Load"
           value={`${summary.load.toLocaleString("en-IN")} kW`}
@@ -4239,7 +4226,7 @@ function FloorAnalyticsView({
         />
       </div>
 
-      <div className="grid min-h-0 min-w-0 gap-3 2xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.85fr)]">
+      <div className="grid min-h-0 gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(360px,0.85fr)]">
         <section className="grid min-h-[320px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[20px] border border-white/80 bg-white/88 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl lg:min-h-0">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
             <div>
@@ -4264,7 +4251,7 @@ function FloorAnalyticsView({
           </div>
         </section>
 
-        <div className="grid min-h-0 min-w-0 gap-3 2xl:grid-rows-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="grid min-h-0 gap-3 lg:grid-rows-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <section className="grid min-h-[260px] grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-[20px] border border-white/80 bg-white/88 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl lg:min-h-0">
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
               <h3 className="text-[10px] font-black uppercase tracking-[0.1em] text-[#081F5C]">
@@ -4436,7 +4423,7 @@ function AnalyticsTile({
   attention = false,
 }) {
   return (
-    <div className="flex min-h-[clamp(76px,10vh,82px)] min-w-0 items-center justify-between rounded-[clamp(14px,1.2vw,18px)] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(239,245,248,0.90))] px-4 py-3 shadow-[0_16px_34px_rgba(15,36,56,0.09),inset_0_1px_0_rgba(255,255,255,0.95)]">
+    <div className="flex min-h-[82px] items-center justify-between rounded-[18px] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(239,245,248,0.90))] px-4 py-3 shadow-[0_16px_34px_rgba(15,36,56,0.09),inset_0_1px_0_rgba(255,255,255,0.95)]">
       <div className="min-w-0">
         <p className="text-[7px] font-black uppercase tracking-[0.12em] text-slate-400">
           {label}
@@ -4553,7 +4540,7 @@ function ClientReading({ label, value }) {
 
 function SummaryTile({ label, value, helper, icon: Icon, attention = false }) {
   return (
-    <div className="group flex min-h-[clamp(82px,11vh,92px)] min-w-0 items-center justify-between rounded-[clamp(14px,1.3vw,20px)] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(239,245,248,0.90))] px-5 py-4 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.96)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(15,36,56,0.14)]">
+    <div className="group flex min-h-[92px] items-center justify-between rounded-[20px] border border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(239,245,248,0.90))] px-5 py-4 shadow-[0_18px_38px_rgba(15,36,56,0.10),inset_0_1px_0_rgba(255,255,255,0.96)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(15,36,56,0.14)]">
       <div className="min-w-0">
         <p className="text-[7px] font-black uppercase tracking-[0.12em] text-slate-400">
           {label}
@@ -4605,7 +4592,7 @@ function FloorSystemCard({ system, locked = false }) {
     system.metricLabels?.consumptionUnit ?? "kWh";
 
   return (
-    <article className={`group relative flex h-full min-h-[clamp(245px,34vh,285px)] min-w-0 flex-col overflow-hidden rounded-[clamp(16px,1.5vw,24px)] border text-[#132131] transition-all duration-200 ${
+    <article className={`group relative flex h-full min-h-[285px] flex-col overflow-hidden rounded-[24px] border text-[#132131] transition-all duration-200 ${
       locked
         ? "border-slate-300/70 bg-slate-100/80 opacity-75"
         : "border-white/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(242,246,248,0.91)_55%,rgba(226,235,240,0.88))] shadow-[0_22px_50px_rgba(15,36,56,0.13),0_4px_12px_rgba(15,36,56,0.07),inset_0_1px_0_rgba(255,255,255,0.96)] backdrop-blur-[24px] hover:-translate-y-[4px] hover:border-white hover:shadow-[0_30px_65px_rgba(15,36,56,0.18),0_10px_24px_rgba(15,36,56,0.09),inset_0_1px_0_rgba(255,255,255,1)]"
@@ -4614,10 +4601,10 @@ function FloorSystemCard({ system, locked = false }) {
       <div className="absolute inset-x-0 top-0 h-[3px] bg-[linear-gradient(90deg,#2B6F8C,#D8B56A)]" />
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-3 px-[clamp(12px,1.3vw,20px)] pb-[clamp(9px,1.1vh,14px)] pt-[clamp(12px,1.4vh,20px)]">
+        <header className="flex items-center justify-between gap-3 px-5 pb-3.5 pt-5">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-[clamp(44px,4.2vw,56px)] w-[clamp(44px,4.2vw,56px)] shrink-0 items-center justify-center rounded-[clamp(11px,1vw,15px)] border border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(226,235,240,0.78))] text-[#2B6F8C] shadow-[0_10px_24px_rgba(28,52,70,0.10),inset_0_1px_0_rgba(255,255,255,0.98)]">
-              <Icon size={24} strokeWidth={2.1} />
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[15px] border border-white/90 bg-[linear-gradient(145deg,rgba(255,255,255,0.96),rgba(226,235,240,0.78))] text-[#2B6F8C] shadow-[0_10px_24px_rgba(28,52,70,0.10),inset_0_1px_0_rgba(255,255,255,0.98)]">
+              <Icon size={28} strokeWidth={2.1} />
             </div>
 
             <div className="min-w-0">
@@ -4648,7 +4635,7 @@ function FloorSystemCard({ system, locked = false }) {
           </span>
         </header>
 
-        <div className="mx-[clamp(12px,1.3vw,20px)] grid grid-cols-2 gap-x-[clamp(10px,1.2vw,20px)] py-2">
+        <div className="mx-5 grid grid-cols-2 gap-x-5 py-2">
           {locked ? (
             <LockedMetric label={loadLabel} />
           ) : (
@@ -4671,9 +4658,9 @@ function FloorSystemCard({ system, locked = false }) {
           )}
         </div>
 
-        <div className="mx-[clamp(12px,1.3vw,20px)] my-2 h-px bg-[#DCE6EB]" />
+        <div className="mx-5 my-2 h-px bg-[#DCE6EB]" />
 
-        <div className="flex flex-1 flex-col justify-center px-[clamp(12px,1.3vw,20px)] py-2">
+        <div className="flex flex-1 flex-col justify-center px-5 py-2">
           {locked ? (
             <div className="border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-100">
               Operational readings hidden
@@ -4685,7 +4672,7 @@ function FloorSystemCard({ system, locked = false }) {
           )}
         </div>
 
-        <footer className="px-[clamp(12px,1.3vw,20px)] pb-[clamp(10px,1.1vh,16px)] pt-2">
+        <footer className="px-5 pb-4 pt-2">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[8px] font-black uppercase tracking-[0.11em] text-slate-500">
               Operational Efficiency
