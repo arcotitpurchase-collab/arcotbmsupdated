@@ -13757,8 +13757,12 @@ import {
   Bluetooth,
   BluetoothOff,
   Building2,
+  Cable,
+  CircuitBoard,
   CloudSun,
+  Droplets,
   Factory,
+  Flame,
   Gauge,
   Grid2X2,
   Leaf,
@@ -13769,6 +13773,7 @@ import {
   Radio,
   ShieldAlert,
   ShieldCheck,
+  Snowflake,
   TowerControl,
   TriangleAlert,
   UtilityPole,
@@ -22578,13 +22583,13 @@ const BuildingsPopup = () => {
 />
         <div className="relative z-10 grid h-full min-h-[480px] w-full grid-rows-[minmax(0,1fr)_clamp(20px,4vh,32px)_minmax(0,1fr)_clamp(20px,4vh,32px)_minmax(0,1fr)] gap-y-[clamp(5px,0.8vh,10px)]">
           <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)] items-stretch">
-            <OverviewBox title="33kV Source" subtitle="2 Incoming / 1 Outgoing" icon={<UtilityPole strokeWidth={1.55} />} accent="#1687C9" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "source") : undefined} />
+            <OverviewBox title="33kV Source" subtitle="2 Incoming / 1 Outgoing" icon={<UtilityPole strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(22,135,201,0.22)]" />} accent="#1687C9" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "source") : undefined} />
             <FlowLineH />
-            <OverviewBox title="33kV Feeder" subtitle="1 Incoming / 6 Outgoing" icon={<Network strokeWidth={1.55} />} accent="#6E5B15" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "feeders") : undefined} />
+            <OverviewBox title="33kV Feeder" subtitle="1 Incoming / 6 Outgoing" icon={<CircuitBoard strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(110,91,21,0.20)]" />} accent="#6E5B15" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "feeders") : undefined} />
             <FlowLineH />
-            <OverviewBox title="Transformer" subtitle="33kV / 433V" icon={<Factory strokeWidth={1.55} />} accent="#70457A" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "transformers") : undefined} />
+            <OverviewBox title="Transformer" subtitle="33kV / 433V" icon={<Zap strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(112,69,122,0.22)]" />} accent="#70457A" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "transformers") : undefined} />
             <FlowLineH />
-            <OverviewBox title="LT Kiosk" subtitle="433V Panel" icon={<PanelsTopLeft strokeWidth={1.55} />} accent="#356987" onClick={canInteractWithFlow ? () => setActivePopup("kiosks") : undefined} />
+            <OverviewBox title="LT Kiosk" subtitle="433V Panel" icon={<PanelsTopLeft strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(53,105,135,0.22)]" />} accent="#356987" onClick={canInteractWithFlow ? () => setActivePopup("kiosks") : undefined} />
           </div>
 
           <div className="relative min-h-0 w-full">
@@ -22595,13 +22600,13 @@ const BuildingsPopup = () => {
           </div>
 
           <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)] items-stretch">
-            <OverviewBox title="Busduct" subtitle="LT Busduct Distribution" icon={<Grid2X2 strokeWidth={1.55} />} accent="#7C4A57" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("busbars") : undefined} />
+            <OverviewBox title="Busduct" subtitle="LT Busduct Distribution" icon={<Cable strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(124,74,87,0.20)]" />} accent="#7C4A57" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("busbars") : undefined} />
             <FlowLineH />
-            <OverviewBox title="PCC" subtitle="Wing 1 + Wing 2" icon={<PanelsTopLeft strokeWidth={1.55} />} accent="#756119" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("pccMain") : undefined} />
+            <OverviewBox title="PCC" subtitle="Wing 1 + Wing 2" icon={<CircuitBoard strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(117,97,25,0.20)]" />} accent="#756119" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("pccMain") : undefined} />
             <FlowLineH />
-            <OverviewBox title="Raising Main" subtitle="Vertical Distribution" icon={<TowerControl strokeWidth={1.55} />} accent="#226A8D" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("raisingMain") : undefined} />
+            <OverviewBox title="Raising Main" subtitle="Vertical Distribution" icon={<TowerControl strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(34,106,141,0.22)]" />} accent="#226A8D" badge="Active" badgeTone="active" onClick={canInteractWithFlow ? () => setActivePopup("raisingMain") : undefined} />
             <FlowLineH />
-            <OverviewBox title="Wing" subtitle="Wing A / Wing B" icon={<Building2 strokeWidth={1.55} />} accent="#287B61" badge="Active" badgeTone="warning" onClick={() => setActivePopup("buildings")} />
+            <OverviewBox title="Wing" subtitle="Wing A / Wing B" icon={<Building2 strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(40,123,97,0.20)]" />} accent="#287B61" badge="Active" badgeTone="warning" onClick={() => setActivePopup("buildings")} />
           </div>
 
           <div className="relative min-h-0 w-full">
@@ -22612,13 +22617,13 @@ const BuildingsPopup = () => {
           </div>
 
           <div className="grid min-h-0 w-full grid-cols-[minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)_clamp(18px,2.2vw,34px)_minmax(0,1fr)] items-stretch">
-            <OverviewBox title="DG" subtitle="Diesel Generator Supply" icon={<Factory strokeWidth={1.55} />} accent="#78611D" badge="Active" badgeTone="warning" onClick={canInteractWithFlow ? () => setActivePopup("dg") : undefined} />
+            <OverviewBox title="DG" subtitle="Diesel Generator Supply" icon={<Factory strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(120,97,29,0.20)]" />} accent="#78611D" badge="Active" badgeTone="warning" onClick={canInteractWithFlow ? () => setActivePopup("dg") : undefined} />
             <FlowLineH />
-            <OverviewBox title="Chillers" subtitle="HVAC Cooling Plant" icon={<CloudSun strokeWidth={1.55} />} accent="#2B7191" badge="Active" badgeTone="warning" />
+            <OverviewBox title="Chillers" subtitle="HVAC Cooling Plant" icon={<Snowflake strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(43,113,145,0.22)]" />} accent="#2B7191" badge="Active" badgeTone="warning" />
             <FlowLineH />
-            <OverviewBox title="WTP" subtitle="Water Treatment Plant" icon={<Leaf strokeWidth={1.55} />} accent="#2C748C" />
+            <OverviewBox title="WTP" subtitle="Water Treatment Plant" icon={<Droplets strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(44,116,140,0.22)]" />} accent="#2C748C" />
             <FlowLineH />
-            <OverviewBox title="Fire" subtitle="Fire & Life Safety" icon={<ShieldAlert strokeWidth={1.55} />} accent="#9C3E42" badge="Active" badgeTone="warning" />
+            <OverviewBox title="Fire" subtitle="Fire & Life Safety" icon={<Flame strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(156,62,66,0.22)]" />} accent="#9C3E42" badge="Active" badgeTone="warning" />
           </div>
         </div>
       </section>
@@ -22651,6 +22656,7 @@ const BuildingsPopup = () => {
     </>
   );
 }
+
 
 
 
