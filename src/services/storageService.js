@@ -174,8 +174,9 @@ const createDemoData = () => {
       {
         id: adminId,
         systemRole: SYSTEM_ROLES.ADMIN,
-        companyName: "Prestige Tech Park",
-        buildingName: "Wing A - Floors 1 to 5",
+        // companyName: "Prestige Tech Park",
+        // buildingName: "Wing A - Floors 1 to 5",
+        
         name: "ARCOT Admin",
         adminName: "ARCOT Admin",
         email: "admin@arcot.com",

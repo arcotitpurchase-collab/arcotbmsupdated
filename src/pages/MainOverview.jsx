@@ -22477,8 +22477,8 @@ const BuildingsPopup = () => {
               </h1>
 
               <span className="mt-1 truncate text-[8px] font-medium uppercase tracking-[0.34em] text-[#AFC4D8] xl:text-[9px]">
-                {currentUser.companyName || "Industrial Internet of Things"}
-                {currentUser.buildingName ? ` · ${currentUser.buildingName}` : ""}
+                {/* {currentUser.companyName || "Industrial Internet of Things"} 
+                {currentUser.buildingName ? ` · ${currentUser.buildingName}` : ""} */} Industrial Internet of Things
               </span>
             </div>
 
