@@ -32889,6 +32889,360 @@ const BuildingsPopup = () => {
 
 
 
+
+const FireAnalyticsView = ({ data, onBack }) => {
+  if (!data) return null;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 top-[72px] z-[1100] overflow-hidden bg-[#020B24] text-white">
+      <div className="flex h-full min-h-0 flex-col bg-[radial-gradient(circle_at_top_left,rgba(0,74,173,0.22),transparent_30%),linear-gradient(180deg,#020B24_0%,#020817_100%)] px-4 pb-4">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-[1600px] flex-col">
+          <div className="shrink-0 border-b border-[#174575] bg-[#020B24]/95 py-3 backdrop-blur-xl">
+            <div className="flex items-stretch gap-4">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex h-[62px] shrink-0 items-center justify-center rounded-xl border border-[#1B4D83] bg-[#061737] px-5 text-[12px] font-semibold text-slate-100 transition hover:border-cyan-400/70 hover:bg-[#092452]"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4 text-cyan-300" />
+                Back to Fire Systems
+              </button>
+
+              <div className="relative flex-1 overflow-hidden rounded-xl border border-[#1B4D83] bg-[#071633] px-5 py-3">
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-red-400 via-orange-300 to-cyan-300" />
+
+                <div className="flex h-full items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-[23px] font-semibold tracking-tight text-white">
+                      {data.title} Analytics
+                    </h2>
+                    <p className="mt-1 text-[10px] font-medium text-slate-400">
+                      {data.subtitle}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-emerald-400/30 bg-emerald-400/[0.08] px-4 py-2 text-[11px] font-semibold text-emerald-300">
+                    <span className="flex items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                      {data.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-2 lg:grid-rows-2">
+            {data.analytics.map((metric, index) => (
+              <div
+                key={metric.key}
+                className="relative flex min-h-[250px] min-w-0 flex-col overflow-hidden rounded-xl border border-[#1B4D83] bg-[linear-gradient(145deg,rgba(7,27,65,0.99),rgba(2,15,42,0.99))] p-4"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300 to-transparent" />
+
+                <div className="flex shrink-0 items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[8px] font-black uppercase tracking-[0.14em] text-sky-400">
+                      Monitoring {index + 1}
+                    </span>
+                    <h3 className="mt-1 text-[13px] font-black uppercase tracking-[0.06em] text-white">
+                      {metric.label}
+                    </h3>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-[22px] font-semibold leading-none text-white">
+                      {metric.value}
+                    </p>
+                    <p className="mt-1 text-[8px] uppercase tracking-[0.1em] text-emerald-300">
+                      Normal
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 min-h-0 flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={data.history}
+                      margin={{ top: 10, right: 12, left: -18, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id={`fireMetric-${data.id}-${metric.key}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor="#22D3EE" stopOpacity={0.62} />
+                          <stop offset="100%" stopColor="#22D3EE" stopOpacity={0.03} />
+                        </linearGradient>
+                      </defs>
+
+                      <CartesianGrid
+                        vertical={false}
+                        stroke="rgba(148,163,184,0.14)"
+                        strokeDasharray="3 3"
+                      />
+
+                      <XAxis
+                        dataKey="time"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#8EA6C4", fontSize: 8 }}
+                      />
+
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#8EA6C4", fontSize: 8 }}
+                      />
+
+                      <Tooltip
+                        contentStyle={analyticsTooltipStyle}
+                        formatter={(value) => [value, metric.label]}
+                      />
+
+                      <Area
+                        type="monotone"
+                        dataKey={metric.key}
+                        stroke="#22D3EE"
+                        strokeWidth={2.2}
+                        fill={`url(#fireMetric-${data.id}-${metric.key})`}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FirePopup = () => {
+  const [openedFireSystems, setOpenedFireSystems] = React.useState([]);
+  const [activeFireAnalytics, setActiveFireAnalytics] = React.useState(null);
+
+  const fireSystems = [
+    {
+      id: "fire-alarms",
+      title: "FIRE ALARMS",
+      subtitle: "Detection & Alarm System",
+      status: "Active",
+      readings: [
+        ["Smoke Detectors", "128 Online"],
+        ["Heat Detectors", "64 Online"],
+        ["Alarm Zones", "12 Normal"],
+        ["Active Alarms", "0"],
+      ],
+      analytics: [
+        { key: "smoke", label: "Smoke Detector Availability", value: "100%" },
+        { key: "heat", label: "Heat Detector Availability", value: "100%" },
+        { key: "zones", label: "Healthy Alarm Zones", value: "12" },
+        { key: "alarms", label: "Active Alarms", value: "0" },
+      ],
+      history: [
+        { time: "08:00", smoke: 98, heat: 97, zones: 12, alarms: 0 },
+        { time: "10:00", smoke: 99, heat: 98, zones: 12, alarms: 0 },
+        { time: "12:00", smoke: 100, heat: 99, zones: 12, alarms: 0 },
+        { time: "14:00", smoke: 99, heat: 100, zones: 12, alarms: 0 },
+        { time: "16:00", smoke: 100, heat: 100, zones: 12, alarms: 0 },
+        { time: "Now", smoke: 100, heat: 100, zones: 12, alarms: 0 },
+      ],
+    },
+    {
+      id: "fire-fighting",
+      title: "FIRE FIGHTING",
+      subtitle: "Fire Protection System",
+      status: "Active",
+      readings: [
+        ["System Pressure", "7.2 bar"],
+        ["Hydrant Network", "Normal"],
+        ["Sprinkler Network", "Normal"],
+        ["Main Valve", "Open"],
+      ],
+      analytics: [
+        { key: "pressure", label: "System Pressure", value: "7.2 bar" },
+        { key: "hydrant", label: "Hydrant Network Health", value: "100%" },
+        { key: "sprinkler", label: "Sprinkler Network Health", value: "100%" },
+        { key: "valve", label: "Main Valve Availability", value: "100%" },
+      ],
+      history: [
+        { time: "08:00", pressure: 7.0, hydrant: 98, sprinkler: 99, valve: 100 },
+        { time: "10:00", pressure: 7.1, hydrant: 99, sprinkler: 99, valve: 100 },
+        { time: "12:00", pressure: 7.2, hydrant: 100, sprinkler: 100, valve: 100 },
+        { time: "14:00", pressure: 7.1, hydrant: 100, sprinkler: 100, valve: 100 },
+        { time: "16:00", pressure: 7.2, hydrant: 100, sprinkler: 100, valve: 100 },
+        { time: "Now", pressure: 7.2, hydrant: 100, sprinkler: 100, valve: 100 },
+      ],
+    },
+    {
+      id: "fire-pump",
+      title: "FIRE PUMP",
+      subtitle: "Fire Water Pump System",
+      status: "Active",
+      readings: [
+        ["Discharge Pressure", "7.5 bar"],
+        ["Pump State", "Standby"],
+        ["Auto Mode", "Enabled"],
+        ["Controller", "Healthy"],
+      ],
+      analytics: [
+        { key: "pressure", label: "Discharge Pressure", value: "7.5 bar" },
+        { key: "readiness", label: "Pump Readiness", value: "100%" },
+        { key: "auto", label: "Auto Mode Availability", value: "100%" },
+        { key: "controller", label: "Controller Health", value: "98%" },
+      ],
+      history: [
+        { time: "08:00", pressure: 7.3, readiness: 98, auto: 100, controller: 96 },
+        { time: "10:00", pressure: 7.4, readiness: 99, auto: 100, controller: 97 },
+        { time: "12:00", pressure: 7.5, readiness: 100, auto: 100, controller: 98 },
+        { time: "14:00", pressure: 7.4, readiness: 100, auto: 100, controller: 98 },
+        { time: "16:00", pressure: 7.5, readiness: 100, auto: 100, controller: 98 },
+        { time: "Now", pressure: 7.5, readiness: 100, auto: 100, controller: 98 },
+      ],
+    },
+  ];
+
+  const handleHover = (id) => {
+    setOpenedFireSystems((previous) =>
+      previous.includes(id) ? previous : [...previous, id]
+    );
+  };
+
+  return (
+    <>
+      <PopupShell title="Fire & Life Safety">
+        <div className="mx-auto w-full max-w-6xl px-4 py-5">
+          <div className="flex justify-center">
+            <div className="flex h-[118px] w-[90%] max-w-[420px] flex-col items-center justify-center rounded-md border-2 border-[#004AAD] bg-[#081F5C] text-center text-white shadow-lg">
+              <span className="text-[9px] font-black uppercase tracking-[0.18em] text-blue-300">
+                Fire & Life Safety
+              </span>
+
+              <h3 className="mt-2 text-lg font-black tracking-wider text-white">
+                FIRE SYSTEM
+              </h3>
+
+              <div className="mt-3 flex items-center gap-1.5 text-[9px] font-bold uppercase text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Active
+              </div>
+            </div>
+          </div>
+
+          {/* Static connector only. No pulse animation. */}
+          <div className="relative mx-auto hidden h-[50px] w-full max-w-5xl sm:block">
+            <div className="absolute left-1/2 top-0 h-[18px] w-[3px] -translate-x-1/2 bg-cyan-400" />
+
+            <div
+              className="absolute top-[18px] h-[3px] bg-cyan-400"
+              style={{ left: "16.6667%", right: "16.6667%" }}
+            />
+
+            {["16.6667%", "50%", "83.3333%"].map((position) => (
+              <div
+                key={position}
+                className="absolute top-[21px] h-[29px] w-[3px] -translate-x-1/2 bg-cyan-400"
+                style={{ left: position }}
+              />
+            ))}
+          </div>
+
+          <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-5 sm:grid-cols-3">
+            {fireSystems.map((system) => {
+              const showReadings = openedFireSystems.includes(system.id);
+
+              return (
+                <div
+                  key={system.id}
+                  onMouseEnter={() => handleHover(system.id)}
+                  onClick={() => setActiveFireAnalytics(system)}
+                  className="relative h-[175px] min-w-0 cursor-pointer overflow-hidden rounded border-2 border-[#004AAD] bg-[#081F5C] text-white shadow-md panel-active-glow"
+                >
+                  {!showReadings ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-blue-300">
+                        Fire System
+                      </span>
+
+                      <h4 className="mt-2 text-[16px] font-black uppercase tracking-[0.08em] text-white">
+                        {system.title}
+                      </h4>
+
+                      <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.1em] text-blue-300">
+                        {system.subtitle}
+                      </p>
+
+                      <div className="mt-4 flex items-center gap-1.5 text-[9px] font-bold uppercase text-emerald-400">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        {system.status}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 z-20 bg-[#081F5C] px-4 py-3">
+                      <div className="mb-2 border-b border-[#2B5DA8] pb-2 text-center">
+                        <h4 className="text-[11px] font-black uppercase tracking-[0.11em] text-white">
+                          {system.title}
+                        </h4>
+                        <span className="mt-1 block text-[7px] font-black uppercase tracking-[0.15em] text-blue-300">
+                          Live Monitoring
+                        </span>
+                      </div>
+
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <span className="text-[7px] font-bold uppercase text-blue-300">
+                          {system.subtitle}
+                        </span>
+
+                        <span className="flex items-center gap-1 text-[7px] font-bold uppercase text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                          Live
+                        </span>
+                      </div>
+
+                      <div className="space-y-[4px] px-1">
+                        {system.readings.map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="flex items-center justify-between gap-3"
+                          >
+                            <span className="truncate text-[9px] font-medium text-slate-300">
+                              {label}
+                            </span>
+
+                            <span className="shrink-0 text-[10px] font-bold tabular-nums text-white">
+                              {value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </PopupShell>
+
+      {activeFireAnalytics && (
+        <FireAnalyticsView
+          data={activeFireAnalytics}
+          onBack={() => setActiveFireAnalytics(null)}
+        />
+      )}
+    </>
+  );
+};
+
+
   return (
     <>
       <style>{`
@@ -33089,7 +33443,23 @@ const BuildingsPopup = () => {
             <FlowLineH />
             <OverviewBox title="Water Management" subtitle="Water Treatment Plant" icon={<Droplets strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(44,116,140,0.22)]" />} accent="#2C748C" onClick={canInteractWithFlow ? () => openPermittedPopup(USER_PERMISSIONS.LIVE_MONITORING_VIEW, "waterManagement") : undefined} />
             <FlowLineH />
-            <OverviewBox title="Fire Alarms" subtitle="Fire & Life Safety" icon={<Flame strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(156,62,66,0.22)]" />} accent="#9C3E42" badge="Active" badgeTone="warning" />
+            <OverviewBox
+              title="Fire"
+              subtitle="Fire & Life Safety"
+              icon={<Flame strokeWidth={1.9} className="drop-shadow-[0_3px_5px_rgba(156,62,66,0.22)]" />}
+              accent="#9C3E42"
+              badge="Active"
+              badgeTone="warning"
+              onClick={
+                canInteractWithFlow
+                  ? () =>
+                      openPermittedPopup(
+                        USER_PERMISSIONS.LIVE_MONITORING_VIEW,
+                        "fire"
+                      )
+                  : undefined
+              }
+            />
           </div>
         </div>
       </section>
@@ -33109,6 +33479,7 @@ const BuildingsPopup = () => {
     {activePopup === "pcc4" && <Pcc4Popup />}
     {activePopup === "raisingMain" && <RaisingMainPopup />}
     {activePopup === "waterManagement" && <WaterManagementPopup />}
+    {activePopup === "fire" && <FirePopup />}
     {activePopup === "overview" && <OverviewPopup />}
   </>
 )}

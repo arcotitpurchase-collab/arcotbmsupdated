@@ -6413,6 +6413,8 @@
 
 
 
+
+
 import React, { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
@@ -6592,7 +6594,10 @@ const EQUIPMENT_OPTIONS = [
     multiplier: 0.045 + index * 0.004,
     voltageBase: 433,
   })),
-  { key: "fire-alarms", label: "Fire Alarms", group: "Fire Alarms", multiplier: 0.06, voltageBase: 230 },
+  // FIRE & LIFE SAFETY — synced with MainOverview
+  { key: "fire-alarms", label: "Fire Alarms", group: "Fire", multiplier: 0.06, voltageBase: 230 },
+  { key: "fire-fighting", label: "Fire Fighting", group: "Fire", multiplier: 0.055, voltageBase: 230 },
+  { key: "fire-pump", label: "Fire Pump", group: "Fire", multiplier: 0.05, voltageBase: 415 },
 ];
 
 const EQUIPMENT_BY_KEY = Object.fromEntries(
@@ -6616,7 +6621,7 @@ const MAIN_FLOW_OPTIONS = [
   { key: "dg", label: "DG", groups: ["DG"] },
   { key: "hvac", label: "HVAC", groups: ["HVAC"] },
   { key: "water-management", label: "Water Management", groups: ["Water Management"] },
-  { key: "fire-alarms", label: "Fire Alarms", groups: ["Fire Alarms"] },
+  { key: "fire", label: "Fire", groups: ["Fire"] },
 ];
 
 const PARENT_EQUIPMENT_KEYS = new Set([
@@ -6649,7 +6654,7 @@ const getInnerEquipmentForFlow = (flowKey) => {
       !PARENT_EQUIPMENT_KEYS.has(equipment.key),
   );
 
-  // Single-item systems such as HVAC / Fire may have no separate children.
+  // Single-item systems such as HVAC may have no separate children.
   if (!options.length) {
     const direct = EQUIPMENT_BY_KEY[flowKey];
     if (direct) options = [direct];
@@ -6676,6 +6681,583 @@ const formatDateKey = (date) => {
 const getCurrentMonth = () => {
   const date = new Date();
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+};
+
+
+const getMainFlowForEquipment = (equipment) => {
+  if (!equipment) return null;
+
+  return (
+    MAIN_FLOW_OPTIONS.find((flow) =>
+      flow.groups.includes(equipment.group),
+    ) || null
+  );
+};
+
+const buildFlowSpecificFeatures = ({
+  equipment,
+  equipmentIndex,
+  hour,
+  dayOffset,
+  voltage,
+  current,
+  powerFactor,
+  energyKwh,
+  energyKvah,
+}) => {
+  const key = equipment.key;
+
+  const electrical = {
+    kWh: Number(energyKwh.toFixed(2)),
+    kVAh: Number(energyKvah.toFixed(2)),
+    voltage: Number(voltage),
+    powerFactor: Number(powerFactor),
+    amps: Number(current),
+    status: "Live",
+  };
+
+  // ---------------------------------------------------------------
+  // 33kV SOURCE
+  // MainOverview SourceBox monitoring:
+  // kWh | kVAh | PF | Voltage | Current
+  // ---------------------------------------------------------------
+  if (equipment.group === "33kV Source") {
+    const sourceValues = {
+      "source-inc1": { kWh: 1280, kVAh: 1195, powerFactor: 0.98, voltage: 33000, amps: 420 },
+      "source-out": { kWh: 1560, kVAh: 1430, powerFactor: 0.99, voltage: 33000, amps: 460 },
+      "source-inc2": { kWh: 1110, kVAh: 1020, powerFactor: 0.97, voltage: 33000, amps: 390 },
+      "source-meter": { kWh: 1420, kVAh: 1300, powerFactor: 0.98, voltage: 33000, amps: 435 },
+    };
+
+    return {
+      ...(sourceValues[key] || electrical),
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // 33kV FEEDER
+  // MainOverview feeder monitoring:
+  // kWh | kVAh | PF | AMPS | Voltage
+  // ---------------------------------------------------------------
+  if (equipment.group === "33kV Feeder") {
+    const feederValues = {
+      "feeder-incoming-1": { kWh: 1480, kVAh: 1360, powerFactor: 0.98, voltage: 33000, amps: 430 },
+      "feeder-og-1": { kWh: 980, kVAh: 910, powerFactor: 0.97, voltage: 33000, amps: 280 },
+      "feeder-og-2": { kWh: 1020, kVAh: 960, powerFactor: 0.98, voltage: 33000, amps: 295 },
+      "feeder-og-3": { kWh: 1120, kVAh: 1040, powerFactor: 0.98, voltage: 33000, amps: 310 },
+      "feeder-og-4": { kWh: 940, kVAh: 870, powerFactor: 0.96, voltage: 33000, amps: 265 },
+      "feeder-og-5": { kWh: 1080, kVAh: 990, powerFactor: 0.98, voltage: 33000, amps: 300 },
+      "feeder-og-6": { kWh: 1150, kVAh: 1080, powerFactor: 0.99, voltage: 33000, amps: 325 },
+    };
+
+    return {
+      ...(feederValues[key] || electrical),
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // TRANSFORMER
+  // MainOverview transformer cards:
+  // Oil Temp | Winding Temp | Buchholz Relay | Load
+  // ---------------------------------------------------------------
+  if (equipment.group === "Transformer") {
+    const transformerValues = {
+      "tr-1": { oilTemperature: 54, windingTemperature: 61, buchholzRelay: "Healthy", loadPercent: 68 },
+      "tr-2": { oilTemperature: 52, windingTemperature: 59, buchholzRelay: "Healthy", loadPercent: 62 },
+      "tr-3": { oilTemperature: 55, windingTemperature: 60, buchholzRelay: "Healthy", loadPercent: 71 },
+      "tr-4": { oilTemperature: 53, windingTemperature: 58, buchholzRelay: "Healthy", loadPercent: 65 },
+      "tr-5": { oilTemperature: 56, windingTemperature: 63, buchholzRelay: "Healthy", loadPercent: 74 },
+      "tr-6": { oilTemperature: 51, windingTemperature: 57, buchholzRelay: "Healthy", loadPercent: 60 },
+    };
+
+    return {
+      ...(transformerValues[key] || {
+        oilTemperature: 54,
+        windingTemperature: 61,
+        buchholzRelay: "Healthy",
+        loadPercent: 68,
+      }),
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // LT KIOSK
+  // MainOverview KioskMonitorBox:
+  // kWh | kVAh | PF | AMPS | Voltage
+  // ---------------------------------------------------------------
+  if (equipment.group === "LT Kiosk") {
+    const kioskNumber = Number(key.split("-")[1] || 1);
+    return {
+      kWh: 1280 + (kioskNumber - 1) * 60,
+      kVAh: 1195 + (kioskNumber - 1) * 55,
+      powerFactor: kioskNumber % 2 === 1 ? 0.98 : 0.97,
+      amps: 420 + (kioskNumber - 1) * 8,
+      voltage: 433,
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // BUSDuct / BUSBAR
+  // MainOverview BusbarMonitorBox:
+  // Temp | Vibration | Health
+  // ---------------------------------------------------------------
+  if (equipment.group === "Busduct") {
+    const busNumber = Number(key.split("-")[1] || 1);
+    return {
+      temperature: 42 + (busNumber - 1),
+      vibration: "Normal",
+      health: "ON",
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // PCC
+  // MainOverview PanelFeatures:
+  // kWh | kVAh | V | PF | Amps + Live/Inactive status
+  // ---------------------------------------------------------------
+  if (
+    equipment.group === "PCC" ||
+    equipment.group === "PCC 1 Inner" ||
+    equipment.group === "PCC 2 Inner" ||
+    equipment.group === "PCC 3 Inner" ||
+    equipment.group === "PCC 4 Inner"
+  ) {
+    return {
+      kWh: 1245 + (equipmentIndex % 14) * 18,
+      kVAh: 1180 + (equipmentIndex % 14) * 15,
+      voltage: 433,
+      powerFactor: equipmentIndex % 2 === 0 ? 0.98 : 0.97,
+      amps: 210 + (equipmentIndex % 14) * 4,
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // UPS
+  // MainOverview createUpsMonitoringData:
+  // Capacity | Input V | Output V | Load | Battery | Input Hz |
+  // Output Hz | Battery V | Backup Time | Mode | Status
+  // ---------------------------------------------------------------
+  if (equipment.group === "UPS") {
+    const upsIndex = Math.max(
+      0,
+      ["ups-30kva-1", "ups-30kva-2", "ups-10kva-1", "ups-10kva-2"].indexOf(key),
+    );
+    const is30kva = key.includes("30kva");
+
+    return {
+      capacity: is30kva ? "30 kVA" : "10 kVA",
+      inputVoltage: is30kva ? 414 + upsIndex : 412 + upsIndex,
+      outputVoltage: is30kva ? 415 + (upsIndex % 2) : 414 + (upsIndex % 2),
+      loadPercent: is30kva ? 66 + upsIndex * 3 : 48 + upsIndex * 4,
+      batteryPercent: 94 - upsIndex * 2,
+      inputFrequency: 50.0,
+      outputFrequency: 50.0,
+      batteryVoltage: is30kva ? 216 - upsIndex : 192 - upsIndex,
+      backupTimeMinutes: is30kva ? 42 - upsIndex * 3 : 58 - upsIndex * 4,
+      mode: "Online",
+      status: "Normal",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // RAISING MAIN
+  // MainOverview RMBox:
+  // kWh | kVAh | V | PF | Amps + Live/Inactive
+  // ---------------------------------------------------------------
+  if (equipment.group === "Raising Main") {
+    const rmNumber = Number(key.split("-")[1] || 1);
+    return {
+      kWh: 1245 + (rmNumber - 1) * 65,
+      kVAh: 1180 + (rmNumber - 1) * 58,
+      voltage: 433,
+      powerFactor: rmNumber % 2 === 1 ? 0.98 : 0.97,
+      amps: 210 + (rmNumber - 1) * 12,
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // DG
+  // MainOverview DgMonitorBox:
+  // kWh | kVAh | PF | AMPS | Voltage
+  // ---------------------------------------------------------------
+  if (equipment.group === "DG") {
+    const dgNumber = Number(key.split("-")[1] || 1);
+    return {
+      kWh: 1460 + (dgNumber - 1) * 75,
+      kVAh: 1375 + (dgNumber - 1) * 68,
+      powerFactor: (dgNumber - 1) % 3 === 0 ? 0.97 : 0.98,
+      amps: 510 + (dgNumber - 1) * 14,
+      voltage: 433,
+      status: "Live",
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // WATER MANAGEMENT
+  // MainOverview STP/WTP:
+  // Inlet Flow | Outlet Flow | pH | Turbidity | Status
+  // MainOverview Tanks:
+  // Level | Volume | Inlet Flow | Outlet Flow | Status
+  // ---------------------------------------------------------------
+  if (equipment.group === "Water Management") {
+    if (key === "stp") {
+      return {
+        inletFlow: 82,
+        outletFlow: 76,
+        ph: 7.2,
+        turbidity: 2.4,
+        status: "Running",
+      };
+    }
+
+    if (key === "wtp") {
+      return {
+        inletFlow: 96,
+        outletFlow: 91,
+        ph: 7.1,
+        turbidity: 1.8,
+        status: "Running",
+      };
+    }
+
+    const tankValues = {
+      "tank-1": { levelPercent: 78, volumePercent: 78, inletFlow: 34, outletFlow: 29, status: "Normal" },
+      "tank-2": { levelPercent: 64, volumePercent: 64, inletFlow: 28, outletFlow: 25, status: "Normal" },
+      "tank-3": { levelPercent: 86, volumePercent: 86, inletFlow: 31, outletFlow: 27, status: "Normal" },
+      "tank-4": { levelPercent: 52, volumePercent: 52, inletFlow: 24, outletFlow: 22, status: "Normal" },
+    };
+
+    if (tankValues[key]) return tankValues[key];
+  }
+
+  // ---------------------------------------------------------------
+  // FIRE & LIFE SAFETY
+  // Synced with the current MainOverview Fire popup.
+  // ---------------------------------------------------------------
+  if (equipment.group === "Fire") {
+    if (key === "fire-alarms") {
+      return {
+        smokeDetectors: 128,
+        heatDetectors: 64,
+        alarmZones: 12,
+        activeAlarms: 0,
+        status: "Active",
+      };
+    }
+
+    if (key === "fire-fighting") {
+      return {
+        systemPressure: 7.2,
+        hydrantNetwork: "Normal",
+        sprinklerNetwork: "Normal",
+        mainValve: "Open",
+        status: "Active",
+      };
+    }
+
+    if (key === "fire-pump") {
+      return {
+        dischargePressure: 7.5,
+        pumpState: "Standby",
+        autoMode: "Enabled",
+        controller: "Healthy",
+        status: "Active",
+      };
+    }
+  }
+
+  // Wing and HVAC do not expose detailed monitoring fields in MainOverview.
+  if (
+    equipment.group === "Wing" ||
+    equipment.group === "HVAC"
+  ) {
+    return { status: "Active" };
+  }
+
+  return electrical;
+};
+
+const getFlowFeatureColumns = (equipment) => {
+  if (!equipment) return [];
+
+  const electricalColumns = [
+    ["kWh", (row) => row.featureData?.kWh],
+    ["kVAh", (row) => row.featureData?.kVAh],
+    ["PF", (row) => row.featureData?.powerFactor],
+    [
+      "V / kV",
+      (row) =>
+        getDisplayVoltage(
+          row.featureData?.voltage ?? row.voltage,
+        ),
+    ],
+    ["Amps", (row) => row.featureData?.amps],
+    ["Status", (row) => row.featureData?.status],
+  ];
+
+  if (equipment.group === "Transformer") {
+    return [
+      ["Oil Temp °C", (row) => row.featureData?.oilTemperature],
+      ["Winding Temp °C", (row) => row.featureData?.windingTemperature],
+      ["Buchholz Relay", (row) => row.featureData?.buchholzRelay],
+      ["Load %", (row) => row.featureData?.loadPercent],
+      ["Status", (row) => row.featureData?.status],
+    ];
+  }
+
+  if (equipment.group === "Busduct") {
+    return [
+      ["Temperature °C", (row) => row.featureData?.temperature],
+      ["Vibration", (row) => row.featureData?.vibration],
+      ["Health", (row) => row.featureData?.health],
+      ["Status", (row) => row.featureData?.status],
+    ];
+  }
+
+  if (equipment.group === "UPS") {
+    return [
+      ["Capacity", (row) => row.featureData?.capacity],
+      ["Input Voltage V", (row) => row.featureData?.inputVoltage],
+      ["Output Voltage V", (row) => row.featureData?.outputVoltage],
+      ["Load %", (row) => row.featureData?.loadPercent],
+      ["Battery %", (row) => row.featureData?.batteryPercent],
+      ["Input Frequency Hz", (row) => row.featureData?.inputFrequency],
+      ["Output Frequency Hz", (row) => row.featureData?.outputFrequency],
+      ["Battery Voltage V DC", (row) => row.featureData?.batteryVoltage],
+      ["Backup Time min", (row) => row.featureData?.backupTimeMinutes],
+      ["Mode", (row) => row.featureData?.mode],
+      ["Status", (row) => row.featureData?.status],
+    ];
+  }
+
+  if (equipment.group === "Water Management") {
+    if (equipment.key === "stp" || equipment.key === "wtp") {
+      return [
+        ["Inlet Flow m³/h", (row) => row.featureData?.inletFlow],
+        ["Outlet Flow m³/h", (row) => row.featureData?.outletFlow],
+        ["pH", (row) => row.featureData?.ph],
+        ["Turbidity NTU", (row) => row.featureData?.turbidity],
+        ["Status", (row) => row.featureData?.status],
+      ];
+    }
+
+    if (equipment.key.startsWith("tank-")) {
+      return [
+        ["Level %", (row) => row.featureData?.levelPercent],
+        ["Volume %", (row) => row.featureData?.volumePercent],
+        ["Inlet Flow m³/h", (row) => row.featureData?.inletFlow],
+        ["Outlet Flow m³/h", (row) => row.featureData?.outletFlow],
+        ["Status", (row) => row.featureData?.status],
+      ];
+    }
+  }
+
+  if (equipment.group === "Fire") {
+    if (equipment.key === "fire-alarms") {
+      return [
+        ["Smoke Detectors", (row) => row.featureData?.smokeDetectors],
+        ["Heat Detectors", (row) => row.featureData?.heatDetectors],
+        ["Alarm Zones", (row) => row.featureData?.alarmZones],
+        ["Active Alarms", (row) => row.featureData?.activeAlarms],
+        ["Status", (row) => row.featureData?.status],
+      ];
+    }
+
+    if (equipment.key === "fire-fighting") {
+      return [
+        ["System Pressure bar", (row) => row.featureData?.systemPressure],
+        ["Hydrant Network", (row) => row.featureData?.hydrantNetwork],
+        ["Sprinkler Network", (row) => row.featureData?.sprinklerNetwork],
+        ["Main Valve", (row) => row.featureData?.mainValve],
+        ["Status", (row) => row.featureData?.status],
+      ];
+    }
+
+    if (equipment.key === "fire-pump") {
+      return [
+        ["Discharge Pressure bar", (row) => row.featureData?.dischargePressure],
+        ["Pump State", (row) => row.featureData?.pumpState],
+        ["Auto Mode", (row) => row.featureData?.autoMode],
+        ["Controller", (row) => row.featureData?.controller],
+        ["Status", (row) => row.featureData?.status],
+      ];
+    }
+  }
+
+  if (
+    equipment.group === "Wing" ||
+    equipment.group === "HVAC"
+  ) {
+    return [["Status", (row) => row.featureData?.status]];
+  }
+
+  return electricalColumns;
+};
+
+const getSelectedFeatureColumns = (
+  equipmentKeys,
+  equipmentOptions,
+) => {
+  const columns = [];
+  const seen = new Set();
+
+  equipmentOptions
+    .filter((equipment) => equipmentKeys.includes(equipment.key))
+    .forEach((equipment) => {
+      getFlowFeatureColumns(equipment).forEach(([heading]) => {
+        if (!seen.has(heading)) {
+          seen.add(heading);
+          columns.push(heading);
+        }
+      });
+    });
+
+  return columns;
+};
+
+const getFeatureValueByHeading = (row, heading) => {
+  const equipment = EQUIPMENT_BY_KEY[row.equipment];
+  if (!equipment) return "";
+
+  const column = getFlowFeatureColumns(equipment).find(
+    ([columnHeading]) => columnHeading === heading,
+  );
+
+  if (!column) return "";
+
+  const value = column[1](row);
+  return value ?? "";
+};
+
+const getLatestMonitoringRow = (rows, equipmentKey) => {
+  const equipmentRows = rows
+    .filter((row) => row.equipment === equipmentKey)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  return equipmentRows[0] || null;
+};
+
+const getMonitoringFeatureCards = (rows, equipmentKey) => {
+  const equipment = EQUIPMENT_BY_KEY[equipmentKey];
+  const row = getLatestMonitoringRow(rows, equipmentKey);
+
+  if (!equipment || !row) return [];
+
+  return getFlowFeatureColumns(equipment)
+    .filter(([heading]) => heading !== "Status")
+    .map(([heading, accessor]) => ({
+      label: heading,
+      value: accessor(row),
+    }));
+};
+
+const buildFlowWiseExportRows = (rows, equipments, selectedPeriod) => {
+  const result = [];
+  const isHourlyOutput = selectedPeriod === "hourly" || selectedPeriod === "daily";
+
+  equipments.forEach((equipment) => {
+    const equipmentRows = rows
+      .filter((row) => row.equipment === equipment.key)
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    if (!equipmentRows.length) return;
+
+    if (isHourlyOutput) {
+      equipmentRows.forEach((row) => {
+        result.push({
+          equipment,
+          periodValue:
+            selectedPeriod === "hourly"
+              ? row.timestamp.slice(11, 16)
+              : `${row.timestamp.slice(0, 10)} ${row.timestamp.slice(11, 16)}`,
+          sourceRow: row,
+        });
+      });
+      return;
+    }
+
+    const groups = equipmentRows.reduce((acc, row) => {
+      let key = row.timestamp.slice(0, 10);
+
+      if (selectedPeriod === "weekly") {
+        key = row.timestamp.slice(0, 10);
+      } else if (selectedPeriod === "monthly") {
+        key = row.timestamp.slice(0, 10);
+      } else if (selectedPeriod === "custom") {
+        key = row.timestamp.slice(0, 10);
+      }
+
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(row);
+      return acc;
+    }, {});
+
+    Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .forEach(([key, groupRows]) => {
+        const latest = groupRows[groupRows.length - 1];
+        const aggregate = {
+          ...latest,
+
+          // Preserve the exact latest monitoring payload for this
+          // equipment first. Transformer/Busduct/UPS/Water values are
+          // therefore never replaced by generic electrical fields.
+          featureData: {
+            ...latest.featureData,
+          },
+        };
+
+        // Only electrical equipment uses cumulative/average electrical
+        // metrics for daily/weekly/monthly exports.
+        const electricalGroups = new Set([
+          "33kV Source",
+          "33kV Feeder",
+          "LT Kiosk",
+          "PCC",
+          "PCC 1 Inner",
+          "PCC 2 Inner",
+          "PCC 3 Inner",
+          "PCC 4 Inner",
+          "Raising Main",
+          "DG",
+        ]);
+
+        if (electricalGroups.has(equipment.group)) {
+          aggregate.energyKwh = sumBy(groupRows, "energyKwh");
+          aggregate.energyKvah = sumBy(groupRows, "energyKvah");
+          aggregate.voltage = averageBy(groupRows, "voltage");
+          aggregate.current = averageBy(groupRows, "current");
+          aggregate.powerFactor = averageBy(groupRows, "powerFactor");
+
+          aggregate.featureData = {
+            ...aggregate.featureData,
+            kWh: roundExcel(sumBy(groupRows, "energyKwh"), 2),
+            kVAh: roundExcel(sumBy(groupRows, "energyKvah"), 2),
+            voltage: roundExcel(averageBy(groupRows, "voltage"), 2),
+            amps: roundExcel(averageBy(groupRows, "current"), 2),
+            powerFactor: roundExcel(
+              averageBy(groupRows, "powerFactor"),
+              3,
+            ),
+          };
+        }
+
+        result.push({
+          equipment,
+          periodValue: key,
+          sourceRow: aggregate,
+        });
+      });
+  });
+
+  return result;
 };
 
 const generateAnalyticsData = () => {
@@ -6743,6 +7325,18 @@ const generateAnalyticsData = () => {
 
         const timestamp = `${dateKey}T${String(hour).padStart(2, "0")}:00:00`;
 
+        const featureData = buildFlowSpecificFeatures({
+          equipment,
+          equipmentIndex,
+          hour,
+          dayOffset,
+          voltage,
+          current,
+          powerFactor,
+          energyKwh,
+          energyKvah,
+        });
+
         rows.push({
           timestamp,
           equipment: equipment.key,
@@ -6755,7 +7349,10 @@ const generateAnalyticsData = () => {
           voltage,
           current,
           powerFactor,
-          status: outgoingKw / incomingKw < 0.88 ? "Attention" : "Normal",
+          featureData,
+          status:
+            featureData?.status ||
+            (outgoingKw / incomingKw < 0.88 ? "Attention" : "Normal"),
         });
       }
     });
@@ -7265,7 +7862,6 @@ const buildHourlyExcelRows = (rows) =>
     .map((row) => ({
       Date: row.timestamp.slice(0, 10),
       Time: row.timestamp.slice(11, 16),
-      Consumption: roundExcel(row.energyKwh, 2),
       "kWh": roundExcel(row.energyKwh, 2),
       "kVAh": roundExcel(row.energyKvah, 2),
       "V / kV": getDisplayVoltage(row.voltage),
@@ -7285,7 +7881,6 @@ const buildDailyExcelRows = (rows) => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, groupRows]) => ({
       Date: date,
-      Consumption: roundExcel(sumBy(groupRows, "energyKwh"), 2),
       "kWh": roundExcel(sumBy(groupRows, "energyKwh"), 2),
       "kVAh": roundExcel(sumBy(groupRows, "energyKvah"), 2),
       "V / kV": getDisplayVoltage(averageBy(groupRows, "voltage")),
@@ -7310,7 +7905,6 @@ const buildWeeklyExcelRows = (rows) => {
     result.push(
       existing || {
         Date: dateKey,
-        Consumption: 0,
         "kWh": 0,
         "kVAh": 0,
         "V / kV": "",
@@ -7470,10 +8064,21 @@ export default function OverviewPage() {
   );
 
   const selectedEquipmentLabel = isAllInnerEquipment
-    ? `All ${selectedMainFlowLabel}`
+    ? selectedMainFlow === "all"
+      ? "All Equipment"
+      : `All ${selectedMainFlowLabel}`
     : EQUIPMENT_BY_KEY[selectedEquipment]?.label ||
       innerEquipmentOptions[0]?.label ||
       selectedMainFlowLabel;
+
+  const selectedFeatureColumns = useMemo(
+    () =>
+      getSelectedFeatureColumns(
+        selectedEquipmentKeys,
+        innerEquipmentOptions,
+      ),
+    [selectedEquipmentKeys, innerEquipmentOptions],
+  );
 
   const filteredData = useMemo(() => {
     return scopedSourceData.filter((row) => {
@@ -7540,6 +8145,43 @@ export default function OverviewPage() {
     customStart,
     customEnd,
   ]);
+
+  const selectedMonitoringCards = useMemo(() => {
+    if (selectedEquipment === "all") return [];
+
+    return getMonitoringFeatureCards(
+      filteredData,
+      selectedEquipment,
+    );
+  }, [filteredData, selectedEquipment]);
+
+  const selectedMonitoringStatus = useMemo(() => {
+    if (selectedEquipment === "all") return "";
+
+    const latest = getLatestMonitoringRow(
+      filteredData,
+      selectedEquipment,
+    );
+
+    return latest?.featureData?.status || latest?.status || "";
+  }, [filteredData, selectedEquipment]);
+
+  const selectedEquipmentDefinition =
+    selectedEquipment !== "all"
+      ? EQUIPMENT_BY_KEY[selectedEquipment]
+      : null;
+
+  const selectedUsesElectricalAnalytics =
+    selectedEquipmentDefinition &&
+    ![
+      "Transformer",
+      "Busduct",
+      "UPS",
+      "Water Management",
+      "Wing",
+      "HVAC",
+      "Fire",
+    ].includes(selectedEquipmentDefinition.group);
 
   const summary = useMemo(() => {
     if (!filteredData.length) {
@@ -7611,9 +8253,11 @@ export default function OverviewPage() {
 
       if (selectedPeriod === "hourly") {
         const inTime = rowTime >= fromTime && rowTime <= toTime;
+
         if (customStart && customEnd && customStart !== customEnd) {
           return rowDate >= customStart && rowDate <= customEnd && inTime;
         }
+
         return rowDate === selectedDate && inTime;
       }
 
@@ -7621,6 +8265,7 @@ export default function OverviewPage() {
         if (customStart && customEnd && customStart !== customEnd) {
           return rowDate >= customStart && rowDate <= customEnd;
         }
+
         return rowDate === selectedDate;
       }
 
@@ -7642,154 +8287,180 @@ export default function OverviewPage() {
       return true;
     };
 
-    const selectedRows = scopedSourceData
-      .filter((row) => selectedEquipmentKeys.includes(row.equipment))
-      .filter(matchesSelectedPeriod);
-
-    if (!selectedRows.length) return;
-
     const escapeCsv = (value) =>
       `"${String(value ?? "").replace(/"/g, '""')}"`;
 
-    const reportRange =
-      selectedPeriod === "monthly"
-        ? selectedMonth
-        : selectedPeriod === "weekly"
-          ? `${formatDateKey(startOfWeekMonday(selectedDate))} to ${formatDateKey(
-              endOfWeekSunday(startOfWeekMonday(selectedDate)),
-            )}`
-          : selectedPeriod === "hourly" &&
-              customStart &&
-              customEnd &&
-              customStart !== customEnd
-            ? `${customStart} to ${customEnd}`
-            : selectedPeriod === "custom"
-              ? `${customStart} to ${customEnd}`
-              : selectedDate;
-
-    const headers =
+    const periodHeading =
       selectedPeriod === "hourly"
-        ? [
-            "Equipment",
-            "Time",
-            "Consumption",
-            "kWh",
-            "kVAh",
-            "V / kV",
-            "PF",
-            "Amps",
-          ]
-        : [
-            "Equipment",
-            "Date",
-            "Consumption",
-            "kWh",
-            "kVAh",
-            "V / kV",
-            "PF",
-            "Amps",
-          ];
+        ? "Time"
+        : selectedPeriod === "daily"
+          ? "Date / Time"
+          : "Date";
 
-    const reportRows = [];
+    const buildCsvFlowSection = (flow, equipments) => {
+      const equipmentKeys = equipments.map((equipment) => equipment.key);
 
-    const appendEquipment = (equipment, equipmentRows) => {
-      if (!equipmentRows.length) return;
+      const flowRows = scopedSourceData
+        .filter((row) => equipmentKeys.includes(row.equipment))
+        .filter(matchesSelectedPeriod);
 
-      if (selectedPeriod === "hourly") {
-        buildHourlyExcelRows(equipmentRows).forEach((row) => {
-          reportRows.push([
-            equipment.label,
-            row.Time,
-            row.Consumption,
-            row["kWh"],
-            row["kVAh"],
-            row["V / kV"],
-            row.PF,
-            row.Amps,
-          ]);
+      if (!flowRows.length) return [];
+
+      const exportedRows = buildFlowWiseExportRows(
+        flowRows,
+        equipments,
+        selectedPeriod,
+      );
+
+      if (!exportedRows.length) return [];
+
+      // Collect only the monitoring fields that belong to this flow's
+      // equipment. No hard-coded kWh/kVAh/Amps columns.
+      const featureColumnNames = [];
+
+      equipments.forEach((equipment) => {
+        getFlowFeatureColumns(equipment).forEach(([heading]) => {
+          if (!featureColumnNames.includes(heading)) {
+            featureColumnNames.push(heading);
+          }
         });
-        return;
-      }
+      });
 
-      const builder =
-        selectedPeriod === "weekly"
-          ? buildWeeklyExcelRows
-          : selectedPeriod === "monthly"
-            ? buildMonthlyExcelRows
-            : buildDailyExcelRows;
+      const section = [];
 
-      builder(equipmentRows).forEach((row) => {
-        reportRows.push([
+      // Flow name
+      section.push([flow.label]);
+
+      // Equipment + the exact MainOverview monitoring fields
+      section.push([
+        "Equipment",
+        periodHeading,
+        ...featureColumnNames,
+      ]);
+
+      exportedRows.forEach(({ equipment, periodValue, sourceRow }) => {
+        const equipmentColumns = new Map(
+          getFlowFeatureColumns(equipment).map(([heading, accessor]) => [
+            heading,
+            accessor,
+          ]),
+        );
+
+        section.push([
           equipment.label,
-          row.Date,
-          row.Consumption,
-          row["kWh"],
-          row["kVAh"],
-          row["V / kV"],
-          row.PF,
-          row.Amps,
+          periodValue,
+          ...featureColumnNames.map((heading) => {
+            const accessor = equipmentColumns.get(heading);
+            return accessor ? accessor(sourceRow) ?? "" : "";
+          }),
         ]);
       });
+
+      return section;
     };
 
-    if (isAllInnerEquipment) {
-      innerEquipmentOptions.forEach((equipment) => {
-        appendEquipment(
-          equipment,
-          selectedRows.filter((row) => row.equipment === equipment.key),
-        );
+    let csvRows = [];
+    let fileLabel = "";
+
+    // ALL -> flow name, equipment, exact feature data, one blank row,
+    // next flow, and so on.
+    if (selectedMainFlow === "all" && isAllInnerEquipment) {
+      MAIN_FLOW_OPTIONS.forEach((flow) => {
+        const equipments = getInnerEquipmentForFlow(flow.key);
+
+        const flowSections = [];
+
+        equipments.forEach((equipment) => {
+          const equipmentRows = scopedSourceData
+            .filter((row) => row.equipment === equipment.key)
+            .filter(matchesSelectedPeriod);
+
+          if (!equipmentRows.length) return;
+
+          const exportedRows = buildFlowWiseExportRows(
+            equipmentRows,
+            [equipment],
+            selectedPeriod,
+          );
+
+          if (!exportedRows.length) return;
+
+          const featureColumns = getFlowFeatureColumns(equipment);
+
+          // Equipment name first, then only that equipment's monitoring fields.
+          flowSections.push([equipment.label]);
+          flowSections.push([
+            periodHeading,
+            ...featureColumns.map(([heading]) => heading),
+          ]);
+
+          exportedRows.forEach(({ periodValue, sourceRow }) => {
+            flowSections.push([
+              periodValue,
+              ...featureColumns.map(([, accessor]) =>
+                accessor(sourceRow) ?? "",
+              ),
+            ]);
+          });
+
+          // One blank row after every equipment section.
+          flowSections.push([]);
+        });
+
+        if (!flowSections.length) return;
+
+        // One blank row before each new flow except the first.
+        if (csvRows.length) {
+          csvRows.push([]);
+        }
+
+        // Flow name clearly separated from its equipment sections.
+        csvRows.push([flow.label]);
+        csvRows.push([]);
+
+        // Remove only the final equipment separator before the next flow.
+        while (
+          flowSections.length &&
+          flowSections[flowSections.length - 1].length === 0
+        ) {
+          flowSections.pop();
+        }
+
+        csvRows.push(...flowSections);
       });
 
-      // Monthly requirement:
-      // after every individual inner equipment, append combined ALL rows.
-      if (selectedPeriod === "monthly") {
-        buildMonthlyExcelRows(selectedRows).forEach((row) => {
-          reportRows.push([
-            "ALL",
-            row.Date,
-            row.Consumption,
-            row["kWh"],
-            row["kVAh"],
-            row["V / kV"],
-            row.PF,
-            row.Amps,
-          ]);
-        });
-      }
+      fileLabel = "All-Flows";
     } else {
-      appendEquipment(
-        EQUIPMENT_BY_KEY[selectedEquipment] || {
-          key: selectedEquipment,
-          label: selectedEquipmentLabel,
-        },
-        selectedRows,
-      );
+      const flow =
+        MAIN_FLOW_OPTIONS.find((item) => item.key === selectedMainFlow) ||
+        getMainFlowForEquipment(EQUIPMENT_BY_KEY[selectedEquipment]);
+
+      if (!flow) return;
+
+      const equipments = isAllInnerEquipment
+        ? innerEquipmentOptions
+        : [
+            EQUIPMENT_BY_KEY[selectedEquipment] ||
+              innerEquipmentOptions[0],
+          ].filter(Boolean);
+
+      csvRows = buildCsvFlowSection(flow, equipments);
+      fileLabel = isAllInnerEquipment
+        ? flow.label
+        : selectedEquipmentLabel;
     }
 
-    const csvLines = [
-      [
-        "Flow",
-        selectedMainFlowLabel,
-        "Equipment",
-        isAllInnerEquipment ? "All" : selectedEquipmentLabel,
-        "Report",
-        selectedPeriod,
-        "Date / Range",
-        reportRange,
-      ]
-        .map(escapeCsv)
-        .join(","),
-      headers.map(escapeCsv).join(","),
-      ...reportRows.map((row) => row.map(escapeCsv).join(",")),
-    ];
+    if (!csvRows.length) return;
+
+    const csvLines = csvRows.map((row) =>
+      row.map(escapeCsv).join(","),
+    );
 
     const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], {
       type: "text/csv;charset=utf-8;",
     });
 
-    const safeName = (
-      isAllInnerEquipment ? selectedMainFlowLabel : selectedEquipmentLabel
-    )
+    const safeName = String(fileLabel || "bms")
       .replace(/[^a-zA-Z0-9-_]+/g, "-")
       .replace(/^-+|-+$/g, "");
 
@@ -7843,17 +8514,14 @@ export default function OverviewPage() {
       const rowTime = row.timestamp.slice(11, 16);
 
       if (selectedPeriod === "hourly") {
-        const inTime = rowTime >= fromTime && rowTime <= toTime;
-        if (customStart && customEnd && customStart !== customEnd) {
-          return rowDate >= customStart && rowDate <= customEnd && inTime;
-        }
-        return rowDate === selectedDate && inTime;
+        return (
+          rowDate === selectedDate &&
+          rowTime >= fromTime &&
+          rowTime <= toTime
+        );
       }
 
       if (selectedPeriod === "daily") {
-        if (customStart && customEnd && customStart !== customEnd) {
-          return rowDate >= customStart && rowDate <= customEnd;
-        }
         return rowDate === selectedDate;
       }
 
@@ -7869,17 +8537,19 @@ export default function OverviewPage() {
       }
 
       if (selectedPeriod === "custom") {
-        return rowDate >= customStart && rowDate <= customEnd;
+        if (customStart && new Date(row.timestamp) < new Date(customStart)) {
+          return false;
+        }
+
+        if (customEnd && new Date(row.timestamp) > new Date(customEnd)) {
+          return false;
+        }
+
+        return true;
       }
 
       return true;
     };
-
-    const selectedRows = scopedSourceData
-      .filter((row) => selectedEquipmentKeys.includes(row.equipment))
-      .filter(matchesSelectedPeriod);
-
-    if (!selectedRows.length) return;
 
     const reportRange =
       selectedPeriod === "monthly"
@@ -7888,137 +8558,234 @@ export default function OverviewPage() {
           ? `${formatDateKey(startOfWeekMonday(selectedDate))} to ${formatDateKey(
               endOfWeekSunday(startOfWeekMonday(selectedDate)),
             )}`
-          : selectedPeriod === "hourly" &&
-              customStart &&
-              customEnd &&
-              customStart !== customEnd
-            ? `${customStart} to ${customEnd}`
-            : selectedPeriod === "custom"
-              ? `${customStart} to ${customEnd}`
-              : selectedDate;
-
-    const rows = [];
-
-    const appendEquipment = (equipment, equipmentRows) => {
-      if (!equipmentRows.length) return;
-
-      if (selectedPeriod === "hourly") {
-        buildHourlyExcelRows(equipmentRows).forEach((row) => {
-          rows.push({
-            Equipment: equipment.label,
-            Time: row.Time,
-            Consumption: row.Consumption,
-            kWh: row["kWh"],
-            kVAh: row["kVAh"],
-            "V / kV": row["V / kV"],
-            PF: row.PF,
-            Amps: row.Amps,
-          });
-        });
-        return;
-      }
-
-      const builder =
-        selectedPeriod === "weekly"
-          ? buildWeeklyExcelRows
-          : selectedPeriod === "monthly"
-            ? buildMonthlyExcelRows
-            : buildDailyExcelRows;
-
-      builder(equipmentRows).forEach((row) => {
-        rows.push({
-          Equipment: equipment.label,
-          Date: row.Date,
-          Consumption: row.Consumption,
-          kWh: row["kWh"],
-          kVAh: row["kVAh"],
-          "V / kV": row["V / kV"],
-          PF: row.PF,
-          Amps: row.Amps,
-        });
-      });
-    };
-
-    if (isAllInnerEquipment) {
-      innerEquipmentOptions.forEach((equipment) => {
-        appendEquipment(
-          equipment,
-          selectedRows.filter((row) => row.equipment === equipment.key),
-        );
-      });
-
-      if (selectedPeriod === "monthly") {
-        buildMonthlyExcelRows(selectedRows).forEach((row) => {
-          rows.push({
-            Equipment: "ALL",
-            Date: row.Date,
-            Consumption: row.Consumption,
-            kWh: row["kWh"],
-            kVAh: row["kVAh"],
-            "V / kV": row["V / kV"],
-            PF: row.PF,
-            Amps: row.Amps,
-          });
-        });
-      }
-    } else {
-      appendEquipment(
-        EQUIPMENT_BY_KEY[selectedEquipment] || {
-          key: selectedEquipment,
-          label: selectedEquipmentLabel,
-        },
-        selectedRows,
-      );
-    }
-
-    const metadata = [
-      [
-        "Flow",
-        selectedMainFlowLabel,
-        "Equipment",
-        isAllInnerEquipment ? "All" : selectedEquipmentLabel,
-        "Report",
-        selectedPeriod,
-        "Date / Range",
-        reportRange,
-      ],
-    ];
-
-    const worksheet = XLSX.utils.aoa_to_sheet(metadata);
-    XLSX.utils.sheet_add_json(worksheet, rows, {
-      origin: "A2",
-      skipHeader: false,
-    });
-
-    applyExcelSheetLayout(
-      worksheet,
-      selectedPeriod === "hourly"
-        ? [26, 10, 14, 12, 12, 12, 10, 12]
-        : [26, 13, 14, 12, 12, 12, 10, 12],
-    );
+          : selectedPeriod === "custom"
+            ? `${customStart || "Start"} to ${customEnd || "End"}`
+            : selectedDate;
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      selectedPeriod === "weekly"
-        ? "Weekly 7 Days"
-        : selectedPeriod === "monthly"
-          ? "Monthly Data"
-          : selectedPeriod === "hourly"
-            ? "Hourly Data"
-            : "Daily Data",
-    );
 
-    const safeName = (
-      isAllInnerEquipment ? selectedMainFlowLabel : selectedEquipmentLabel
-    )
-      .replace(/[^a-zA-Z0-9-_]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    const addFlowSheet = (flow, equipments) => {
+      const equipmentKeys = equipments.map((equipment) => equipment.key);
+      const flowRows = scopedSourceData
+        .filter((row) => equipmentKeys.includes(row.equipment))
+        .filter(matchesSelectedPeriod);
+
+      if (!flowRows.length) return;
+
+      const exportedRows = buildFlowWiseExportRows(
+        flowRows,
+        equipments,
+        selectedPeriod,
+      );
+
+      if (!exportedRows.length) return;
+
+      const featureColumnNames = [];
+      const featureColumnMap = new Map();
+
+      equipments.forEach((equipment) => {
+        getFlowFeatureColumns(equipment).forEach(([heading, accessor]) => {
+          if (!featureColumnMap.has(heading)) {
+            featureColumnMap.set(heading, accessor);
+            featureColumnNames.push(heading);
+          }
+        });
+      });
+
+      const periodHeading =
+        selectedPeriod === "hourly"
+          ? "Time"
+          : selectedPeriod === "daily"
+            ? "Date / Time"
+            : "Date";
+
+      const metadata = [
+        ["Flow", flow.label],
+        ["Report", selectedPeriod],
+        ["Date / Range", reportRange],
+        ["Equipment Count", equipments.length],
+        [],
+      ];
+
+      const header = [
+        "Equipment",
+        periodHeading,
+        ...featureColumnNames,
+      ];
+
+      const body = exportedRows.map(({ equipment, periodValue, sourceRow }) => {
+        const equipmentColumns = new Map(
+          getFlowFeatureColumns(equipment).map(([heading, accessor]) => [
+            heading,
+            accessor,
+          ]),
+        );
+
+        return [
+          equipment.label,
+          periodValue,
+          ...featureColumnNames.map((heading) => {
+            const accessor = equipmentColumns.get(heading);
+            return accessor ? accessor(sourceRow) ?? "" : "";
+          }),
+        ];
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet([
+        ...metadata,
+        header,
+        ...body,
+      ]);
+
+      worksheet["!freeze"] = { xSplit: 0, ySplit: 6 };
+      worksheet["!autofilter"] = {
+        ref: `A6:${XLSX.utils.encode_col(header.length - 1)}${body.length + 6}`,
+      };
+
+      worksheet["!cols"] = header.map((heading, index) => ({
+        wch:
+          index === 0
+            ? 30
+            : index === 1
+              ? 18
+              : Math.max(12, Math.min(22, String(heading).length + 4)),
+      }));
+
+      const safeSheetName = flow.label
+        .replace(/[\\/?*[\]:]/g, "-")
+        .slice(0, 31);
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        safeSheetName || "Flow",
+      );
+    };
+
+    if (selectedMainFlow === "all" && isAllInnerEquipment) {
+      // ALL DATA DOWNLOAD:
+      // Flow -> equipment -> that equipment's monitoring fields.
+      // A blank row separates every equipment, so data never appears
+      // as one continuous mixed table.
+      const allRows = [];
+
+      MAIN_FLOW_OPTIONS.forEach((flow) => {
+        const equipments = getInnerEquipmentForFlow(flow.key);
+        const flowRows = [];
+
+        equipments.forEach((equipment) => {
+          const equipmentRows = scopedSourceData
+            .filter((row) => row.equipment === equipment.key)
+            .filter(matchesSelectedPeriod);
+
+          if (!equipmentRows.length) return;
+
+          const exportedRows = buildFlowWiseExportRows(
+            equipmentRows,
+            [equipment],
+            selectedPeriod,
+          );
+
+          if (!exportedRows.length) return;
+
+          const featureColumns = getFlowFeatureColumns(equipment);
+
+          const periodHeading =
+            selectedPeriod === "hourly"
+              ? "Time"
+              : selectedPeriod === "daily"
+                ? "Date / Time"
+                : "Date";
+
+          // Equipment title
+          flowRows.push([equipment.label]);
+
+          // Only this equipment's actual monitoring features
+          flowRows.push([
+            periodHeading,
+            ...featureColumns.map(([heading]) => heading),
+          ]);
+
+          exportedRows.forEach(({ periodValue, sourceRow }) => {
+            flowRows.push([
+              periodValue,
+              ...featureColumns.map(([, accessor]) =>
+                accessor(sourceRow) ?? "",
+              ),
+            ]);
+          });
+
+          // Exactly one blank row between equipment sections.
+          flowRows.push([]);
+        });
+
+        while (
+          flowRows.length &&
+          flowRows[flowRows.length - 1].length === 0
+        ) {
+          flowRows.pop();
+        }
+
+        if (!flowRows.length) return;
+
+        // Exactly one blank row between flows.
+        if (allRows.length) {
+          allRows.push([]);
+        }
+
+        allRows.push([flow.label]);
+        allRows.push([]);
+        allRows.push(...flowRows);
+      });
+
+      if (!allRows.length) return;
+
+      const worksheet = XLSX.utils.aoa_to_sheet(allRows);
+
+      const maxColumnCount = allRows.reduce(
+        (max, row) => Math.max(max, row.length),
+        0,
+      );
+
+      worksheet["!cols"] = Array.from(
+        { length: Math.max(2, maxColumnCount) },
+        (_, index) => ({
+          wch: index === 0 ? 30 : 20,
+        }),
+      );
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "All Flows",
+      );
+    } else {
+      const flow =
+        MAIN_FLOW_OPTIONS.find((item) => item.key === selectedMainFlow) ||
+        getMainFlowForEquipment(EQUIPMENT_BY_KEY[selectedEquipment]);
+
+      if (!flow) return;
+
+      const equipments = isAllInnerEquipment
+        ? innerEquipmentOptions
+        : [
+            EQUIPMENT_BY_KEY[selectedEquipment] ||
+              innerEquipmentOptions[0],
+          ].filter(Boolean);
+
+      addFlowSheet(flow, equipments);
+    }
+
+    if (!workbook.SheetNames.length) return;
+
+    const fileLabel =
+      selectedMainFlow === "all" && isAllInnerEquipment
+        ? "All-Flows-One-Sheet"
+        : selectedMainFlowLabel.replace(/[^a-zA-Z0-9-_]+/g, "-");
 
     XLSX.writeFile(
       workbook,
-      `${safeName || "bms"}-${selectedPeriod}-monitoring.xlsx`,
+      `${fileLabel || "BMS"}-${selectedPeriod}-flow-wise-monitoring.xlsx`,
     );
   };
 
@@ -8181,9 +8948,9 @@ export default function OverviewPage() {
         }
       `}</style>
 
-      <main className="overview-main-grid mx-auto grid min-h-0 w-full max-w-[1720px] grid-rows-none gap-2.5 overflow-y-auto px-3 py-3 sm:px-5 lg:h-[calc(100dvh-72px)] lg:grid-rows-[178px_110px_42px_minmax(0,1fr)] lg:overflow-hidden lg:px-6">
+      <main className="overview-main-grid mx-auto grid min-h-0 w-full max-w-[1720px] grid-rows-none gap-2.5 overflow-y-auto px-3 py-3 sm:px-5 lg:h-[calc(100dvh-72px)] lg:grid-rows-[minmax(178px,auto)_110px_42px_minmax(0,1fr)] lg:overflow-hidden lg:px-6">
         <section className="grid min-h-0 grid-cols-1 gap-3 overflow-visible lg:grid-cols-12">
-          <div className="relative col-span-12 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] lg:col-span-4">
+          <div className="relative col-span-12 min-w-0 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] lg:col-span-4">
             <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10 bg-white/[0.04]" />
             <div className="pointer-events-none absolute -bottom-24 left-16 h-52 w-52 rounded-full bg-[#17A8DB]/15 blur-3xl" />
 
@@ -8209,8 +8976,8 @@ export default function OverviewPage() {
 </div>
           </div>
 
-       <Card className="print-safe col-span-12 flex min-h-0 flex-col overflow-visible p-3.5 lg:col-span-8">
-  <div className="flex shrink-0 flex-col gap-3 border-b border-[#E3ECF5] pb-2.5 sm:flex-row sm:items-center sm:justify-between">
+       <Card className="print-safe col-span-12 flex min-h-0 min-w-0 flex-col overflow-hidden p-3.5 lg:col-span-8">
+  <div className="flex shrink-0 min-w-0 flex-col gap-3 border-b border-[#E3ECF5] pb-2.5 xl:flex-row xl:items-center xl:justify-between">
     <div className="flex items-center gap-3.5">
       <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#D6E4F2] bg-[#EDF5FA] text-[#1B73C9]">
         <Gauge size={21} strokeWidth={2.2} />
@@ -8227,7 +8994,7 @@ export default function OverviewPage() {
       </div>
     </div>
 
-    <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 xl:w-auto xl:shrink-0">
       <button
         type="button"
         onClick={downloadCsv}
@@ -8237,7 +9004,7 @@ export default function OverviewPage() {
             ? "Download CSV report"
             : "Download permission is not assigned"
         }
-        className={`inline-flex h-10 items-center justify-center gap-2 rounded-[10px] px-4 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+        className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
           canDownloadReports
             ? "bg-[#1B73C9] text-white shadow-[0_8px_18px_rgba(37,99,235,0.2)] hover:bg-[#155FA8]"
             : "cursor-not-allowed bg-slate-200 text-slate-400"
@@ -8247,16 +9014,16 @@ export default function OverviewPage() {
         CSV
       </button>
 
-      {/* <button
+      <button
         type="button"
         onClick={downloadExcel}
         disabled={!canDownloadReports}
         title={
           canDownloadReports
-            ? "Download realtime Hourly, Daily, Weekly and Monthly Excel workbook"
+            ? "Download flow-wise Excel workbook with equipment-specific monitoring features"
             : "Download permission is not assigned"
         }
-        className={`inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border px-4 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+        className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] border px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
           canDownloadReports
             ? "border-[#BEE8D4] bg-[#ECFDF5] text-[#15805F] hover:border-[#16A34A] hover:bg-[#DFF8EA]"
             : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400"
@@ -8264,7 +9031,7 @@ export default function OverviewPage() {
       >
         <Download size={15} />
         Realtime Excel
-      </button> */}
+      </button>
 
       <button
         type="button"
@@ -8275,7 +9042,7 @@ export default function OverviewPage() {
             ? "Download JSON report"
             : "Download permission is not assigned"
         }
-        className={`inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border px-4 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+        className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] border px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
           canDownloadReports
             ? "border-[#CCDCEB] bg-white text-[#416483] hover:border-[#1B73C9] hover:text-[#1B73C9]"
             : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400"
@@ -8310,8 +9077,8 @@ export default function OverviewPage() {
     </div>
   </div>
 
-  <div className="mt-3 grid grid-cols-1 items-end gap-3 overflow-visible sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
-    <label className="flex min-w-0 flex-col gap-1.5">
+  <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+    <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
         Main Equipment
       </span>
@@ -8330,7 +9097,7 @@ export default function OverviewPage() {
               : nextOptions[0]?.key || nextFlow,
           );
         }}
-        className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+        className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
       >
         {MAIN_FLOW_OPTIONS.map((flow) => (
           <option key={flow.key} value={flow.key}>
@@ -8341,7 +9108,7 @@ export default function OverviewPage() {
       </select>
     </label>
 
-    <label className="flex min-w-0 flex-col gap-1.5">
+    <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
         Inner Equipment
       </span>
@@ -8350,7 +9117,7 @@ export default function OverviewPage() {
         aria-label="Select inner equipment"
         value={selectedEquipment}
         onChange={(event) => setSelectedEquipment(event.target.value)}
-        className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+        className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
       >
         {innerEquipmentOptions.map((equipment) => (
           <option key={equipment.key} value={equipment.key}>
@@ -8361,7 +9128,7 @@ export default function OverviewPage() {
       </select>
     </label>
 
-    <label className="flex min-w-0 flex-col gap-1.5">
+    <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
         Period
       </span>
@@ -8370,7 +9137,7 @@ export default function OverviewPage() {
         aria-label="Select reporting period"
         value={selectedPeriod}
         onChange={(event) => setSelectedPeriod(event.target.value)}
-        className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+        className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
       >
         <option value="hourly">Hourly</option>
         <option value="daily">Daily</option>
@@ -8381,7 +9148,7 @@ export default function OverviewPage() {
     </label>
 
     {(selectedPeriod === "hourly" || selectedPeriod === "daily" || selectedPeriod === "weekly") && (
-      <label className="flex min-w-0 flex-col gap-1.5">
+      <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
           Date
         </span>
@@ -8390,13 +9157,13 @@ export default function OverviewPage() {
           type="date"
           value={selectedDate}
           onChange={(event) => setSelectedDate(event.target.value)}
-          className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+          className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
         />
       </label>
     )}
 
     {selectedPeriod === "monthly" && (
-      <label className="flex min-w-0 flex-col gap-1.5">
+      <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
         <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
           Month
         </span>
@@ -8405,14 +9172,14 @@ export default function OverviewPage() {
           type="month"
           value={selectedMonth}
           onChange={(event) => setSelectedMonth(event.target.value)}
-          className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+          className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
         />
       </label>
     )}
 
     {(selectedPeriod === "hourly" || selectedPeriod === "daily") && (
       <>
-        <label className="flex min-w-0 flex-col gap-1.5">
+        <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
             From
           </span>
@@ -8421,11 +9188,11 @@ export default function OverviewPage() {
             type="time"
             value={fromTime}
             onChange={(event) => setFromTime(event.target.value)}
-            className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+            className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
           />
         </label>
 
-        <label className="flex min-w-0 flex-col gap-1.5">
+        <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
             To
           </span>
@@ -8434,7 +9201,7 @@ export default function OverviewPage() {
             type="time"
             value={toTime}
             onChange={(event) => setToTime(event.target.value)}
-            className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+            className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
           />
         </label>
       </>
@@ -8451,7 +9218,7 @@ export default function OverviewPage() {
             type="datetime-local"
             value={customStart}
             onChange={(event) => setCustomStart(event.target.value)}
-            className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+            className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
           />
         </label>
 
@@ -8464,7 +9231,7 @@ export default function OverviewPage() {
             type="datetime-local"
             value={customEnd}
             onChange={(event) => setCustomEnd(event.target.value)}
-            className="h-10 min-w-0 rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+            className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
           />
         </label>
       </>
@@ -8483,53 +9250,112 @@ export default function OverviewPage() {
         </section>
 
         <section className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:h-full lg:grid-cols-5">
-          <MetricCard
-            label="Consumed Energy"
-            value={summary.totalEnergy.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
-            unit="kWh"
-            tone="blue"
-            icon={Zap}
-            trend="Live"
-          />
+          {selectedEquipment !== "all" && selectedMonitoringCards.length ? (
+            <>
+              {selectedMonitoringCards.slice(0, 5).map((item, index) => (
+                <MetricCard
+                  key={item.label}
+                  label={item.label}
+                  value={item.value ?? "-"}
+                  tone={
+                    index === 0
+                      ? "blue"
+                      : index === 1
+                        ? "amber"
+                        : index === 2
+                          ? "cyan"
+                          : index === 3
+                            ? "green"
+                            : "blue"
+                  }
+                  icon={
+                    item.label.includes("Temp")
+                      ? Activity
+                      : item.label.includes("Load") ||
+                          item.label.includes("Level") ||
+                          item.label.includes("Battery")
+                        ? Gauge
+                        : item.label.includes("Voltage")
+                          ? Zap
+                          : item.label.includes("Health") ||
+                              item.label.includes("Relay")
+                            ? ShieldCheck
+                            : BarChart3
+                  }
+                  trend={
+                    index === 0 && selectedMonitoringStatus
+                      ? selectedMonitoringStatus
+                      : undefined
+                  }
+                />
+              ))}
 
-          <MetricCard
-            label="Peak Load"
-            value={summary.peakLoad.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
-            unit="kW"
-            tone="amber"
-            icon={TrendingUp}
-          />
+              {Array.from({
+                length: Math.max(
+                  0,
+                  5 - selectedMonitoringCards.slice(0, 5).length,
+                ),
+              }).map((_, index) => (
+                <MetricCard
+                  key={`empty-monitor-${index}`}
+                  label="Monitoring"
+                  value="-"
+                  tone="blue"
+                  icon={Activity}
+                />
+              ))}
+            </>
+          ) : (
+            <>
+              <MetricCard
+                label="Consumed Energy"
+                value={summary.totalEnergy.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                })}
+                unit="kWh"
+                tone="blue"
+                icon={Zap}
+                trend="Live"
+              />
 
-          <MetricCard
-            label="Average Load"
-            value={summary.averageLoad.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
-            unit="kW"
-            tone="cyan"
-            icon={Activity}
-          />
+              <MetricCard
+                label="Peak Load"
+                value={summary.peakLoad.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                })}
+                unit="kW"
+                tone="amber"
+                icon={TrendingUp}
+              />
 
-          <MetricCard
-            label="Distribution Loss"
-            value={summary.totalLoss.toLocaleString(undefined, {
-              maximumFractionDigits: 0,
-            })}
-            unit="kW"
-            tone="red"
-            icon={ArrowDownToLine}
-          />
+              <MetricCard
+                label="Average Load"
+                value={summary.averageLoad.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                })}
+                unit="kW"
+                tone="cyan"
+                icon={Activity}
+              />
 
-          <MetricCard
-            label="Efficiency"
-            value={`${summary.efficiency.toFixed(1)}%`}
-            tone="green"
-            icon={ShieldCheck}
-          />
+              <MetricCard
+                label="Distribution Loss"
+                value={summary.totalLoss.toLocaleString(undefined, {
+                  maximumFractionDigits: 0,
+                })}
+                unit="kW"
+                tone="red"
+                icon={ArrowDownToLine}
+              />
+
+              <MetricCard
+                label="Efficiency"
+                value={`${summary.efficiency.toFixed(1)}%`}
+                tone="green"
+                icon={ShieldCheck}
+              />
+            </>
+          )}
         </section>
 
         <div className="flex min-h-[42px] flex-col gap-2 rounded-[11px] border border-[#D3E2EF] bg-white px-1.5 py-1.5 shadow-[0_8px_22px_rgba(8,31,92,0.06)] sm:flex-row sm:items-center sm:justify-between">
@@ -8571,8 +9397,8 @@ export default function OverviewPage() {
 
         {activeWorkspace === "analytics" ? (
           canViewReports ? (
-            <section className="grid min-h-0 grid-cols-1 gap-2.5 lg:grid-cols-12 lg:overflow-hidden">
-            <Card className="print-safe flex min-h-[260px] flex-col p-3.5 lg:col-span-12 lg:h-full xl:col-span-8">
+            <section className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 overflow-hidden lg:grid-cols-12">
+            <Card className="print-safe flex min-h-[260px] min-w-0 flex-col overflow-hidden p-3.5 lg:col-span-12 lg:h-full xl:col-span-8">
               <SectionTitle
                 title={`${selectedEquipmentLabel} Load Trend`}
                 subtitle="Consumption trend across the selected period."
@@ -8584,7 +9410,7 @@ export default function OverviewPage() {
               </div>
             </Card>
 
-            <div className="grid min-h-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:col-span-12 xl:col-span-4 xl:grid-cols-1 xl:grid-rows-[0.82fr_1.18fr]">
+            <div className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:col-span-12 xl:col-span-4 xl:grid-cols-1 xl:grid-rows-[0.82fr_1.18fr]">
               <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
                 <SectionTitle
                   title="Electrical Quality"
@@ -8647,14 +9473,14 @@ export default function OverviewPage() {
         ) : (
           canViewLiveReadings ? (
             <section className="min-h-0 lg:h-full">
-            <Card className="print-safe flex min-h-[360px] flex-col p-3.5 lg:h-full lg:min-h-0">
+            <Card className="print-safe flex min-h-[360px] min-w-0 max-w-full flex-col overflow-hidden p-3.5 lg:h-full lg:min-h-0">
               <SectionTitle
                 title="Detailed Analytical Readings"
                 subtitle={`${filteredData.length.toLocaleString()} readings match the selected filters.`}
                 icon={Layers3}
               />
 
-              <div className="mt-3 space-y-3 xl:hidden">
+              <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-x-hidden xl:hidden">
                 {filteredData.length === 0 ? (
                   <p className="rounded-[12px] border border-[#E2EBF4] px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]">
                     No monitoring readings are available for the assigned Zones.
@@ -8695,23 +9521,22 @@ export default function OverviewPage() {
                         </div>
 
                         <dl className="mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
-                          {[
-                            ["Consumption", `${row.energyKwh} kWh`],
-                            ["Apparent Energy", `${row.energyKvah} kVAh`],
-                            ["Voltage", `${getDisplayVoltage(row.voltage)} ${getVoltageUnit(row.voltage)}`],
-                            ["Current", `${row.current} A`],
-                            ["Power Factor", row.powerFactor],
-                            ["Loss", `${loss} kW`],
-                          ].map(([label, value]) => (
-                            <div key={label}>
-                              <dt className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]">
-                                {label}
-                              </dt>
-                              <dd className="mt-1 font-semibold text-[#06224F]">
-                                {value}
-                              </dd>
-                            </div>
-                          ))}
+                          {getFlowFeatureColumns(
+                            EQUIPMENT_BY_KEY[row.equipment],
+                          ).map(([label, accessor]) => {
+                            const value = accessor(row);
+
+                            return (
+                              <div key={label}>
+                                <dt className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]">
+                                  {label}
+                                </dt>
+                                <dd className="mt-1 font-semibold text-[#06224F]">
+                                  {value ?? "-"}
+                                </dd>
+                              </div>
+                            );
+                          })}
                         </dl>
                       </article>
                     );
@@ -8719,25 +9544,19 @@ export default function OverviewPage() {
                 )}
               </div>
 
-              <div className="hidden min-h-0 flex-1 overflow-y-auto rounded-[12px] border border-[#E2EBF4] xl:block">
-                <table className="w-full min-w-[1050px] border-collapse">
+              <div className="hidden min-h-0 min-w-0 max-w-full flex-1 overflow-x-auto overflow-y-auto rounded-[12px] border border-[#E2EBF4] xl:block">
+                <table className="w-max min-w-full border-collapse">
                   <thead className="sticky top-0 z-10 bg-[#F5F9FC]/95 backdrop-blur">
                     <tr className="border-b border-[#D8E6F2]">
                       {[
                         "Timestamp",
                         "Flow",
                         "Equipment",
-                        "Consumption",
-                        "kVAh",
-                        "Voltage",
-                        "Current",
-                        "Power Factor",
-                        "Loss",
-                        "Status",
+                        ...selectedFeatureColumns,
                       ].map((heading) => (
                         <th
                           key={heading}
-                          className="px-3 py-2.5 text-left text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]"
+                          className="whitespace-nowrap px-3 py-2.5 text-left text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]"
                         >
                           {heading}
                         </th>
@@ -8749,82 +9568,43 @@ export default function OverviewPage() {
                     {filteredData.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={10}
+                          colSpan={Math.max(
+                            3 + selectedFeatureColumns.length,
+                            3,
+                          )}
                           className="px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]"
                         >
                           No monitoring readings are available for the assigned Zones.
                         </td>
                       </tr>
                     ) : (
-                      filteredData.map((row, index) => {
-                      const loss = Math.max(
-                        0,
-                        Number(row.incomingKw) - Number(row.outgoingKw),
-                      );
-
-                      return (
+                      filteredData.map((row, index) => (
                         <tr
                           key={`${row.timestamp}-${row.equipment}-${index}`}
                           className="border-b border-[#EDF2F7] transition hover:bg-[#F5F9FC] last:border-b-0"
                         >
-                          <td className="px-3 py-2.5 text-[9px] text-[#5F738D]">
+                          <td className="whitespace-nowrap px-3 py-2.5 text-[9px] text-[#5F738D]">
                             {new Date(row.timestamp).toLocaleString()}
                           </td>
 
-                          <td className="px-3 py-2.5 text-[9px] font-semibold text-[#1B73C9]">
+                          <td className="whitespace-nowrap px-3 py-2.5 text-[9px] font-semibold text-[#1B73C9]">
                             {row.flowGroup}
                           </td>
 
-                          <td className="px-3 py-2.5 text-[9px] font-semibold text-[#06224F]">
+                          <td className="whitespace-nowrap px-3 py-2.5 text-[9px] font-semibold text-[#06224F]">
                             {row.equipmentLabel}
                           </td>
 
-                          <td className="px-3 py-2.5 text-[9px] font-semibold text-[#06224F]">
-                            {row.energyKwh} kWh
-                          </td>
-
-                          <td className="px-3 py-2.5 text-[9px] font-semibold text-[#0E86B7]">
-                            {row.energyKvah} kVAh
-                          </td>
-
-                          <td className="px-3 py-2.5 text-[9px] text-[#5F738D]">
-                            {getDisplayVoltage(row.voltage)} {getVoltageUnit(row.voltage)}
-                          </td>
-
-                          <td className="px-3 py-2.5 text-[9px] text-[#5F738D]">
-                            {row.current} A
-                          </td>
-
-                          <td className="px-3 py-2.5 text-[9px] text-[#5F738D]">
-                            {row.powerFactor}
-                          </td>
-
-                          <td
-                            className={`px-3 py-3 text-[9px] font-semibold ${
-                              loss > row.incomingKw * 0.1
-                                ? "text-[#B42318]"
-                                : loss > row.incomingKw * 0.06
-                                  ? "text-[#B7791F]"
-                                  : "text-[#15805F]"
-                            }`}
-                          >
-                            {loss} kW
-                          </td>
-
-                          <td className="px-3 py-3">
-                            <span
-                              className={`inline-flex rounded-full border px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.08em] ${
-                                row.status === "Normal"
-                                  ? "border-[#BEE8D4] bg-[#E8F5EE] text-[#15805F]"
-                                  : "border-[#F4D3B2] bg-[#FFF5DD] text-[#B7791F]"
-                              }`}
+                          {selectedFeatureColumns.map((heading) => (
+                            <td
+                              key={heading}
+                              className="whitespace-nowrap px-3 py-2.5 text-[9px] text-[#5F738D]"
                             >
-                              {row.status}
-                            </span>
-                          </td>
+                              {getFeatureValueByHeading(row, heading) || "-"}
+                            </td>
+                          ))}
                         </tr>
-                      );
-                    })
+                      ))
                     )}
                   </tbody>
                 </table>
