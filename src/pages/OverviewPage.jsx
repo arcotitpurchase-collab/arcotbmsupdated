@@ -7472,9 +7472,9 @@ const MetricCard = ({
             {label}
           </p>
 
-          <div className="mt-3 flex items-end gap-2">
+          <div className="mt-3 flex min-w-0 flex-wrap items-end gap-x-2 gap-y-1">
             <h3
-              className={`text-[22px] font-medium leading-none tracking-[-0.02em] ${activeTone.text}`}
+              className={`max-w-full break-words text-[clamp(18px,1.8vw,22px)] font-medium leading-tight tracking-[-0.02em] ${activeTone.text}`}
             >
               {value}
             </h3>
@@ -7560,7 +7560,11 @@ const TrendChart = ({ rows }) => {
   const labelStep = Math.max(1, Math.ceil(coordinates.length / 7));
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-full min-h-0 w-full">
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMidYMid meet"
+      className="h-full min-h-[220px] w-full"
+    >
       {[0, 1, 2, 3, 4].map((index) => {
         const y = top + index * (chartHeight / 4);
         const value = maxValue - index * (maxValue / 4);
@@ -8850,9 +8854,9 @@ export default function OverviewPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] w-full flex-col overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(0,174,239,0.07),transparent_28%),linear-gradient(180deg,#F7FAFD_0%,#EEF5FA_100%)] text-[#06224F]">
-      <header className="sticky top-0 z-[1000] min-h-[72px] shrink-0 border-b-4 border-[#004AAD] bg-[#081F5C] px-3 py-3 text-white shadow-[0_8px_30px_rgba(3,23,65,0.20)] sm:px-4">
-        <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex min-h-[100dvh] w-full min-w-0 flex-col overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(0,174,239,0.07),transparent_28%),linear-gradient(180deg,#F7FAFD_0%,#EEF5FA_100%)] text-[#06224F]">
+      <header className="sticky top-0 z-[1000] shrink-0 border-b-4 border-[#004AAD] bg-[#081F5C] px-3 py-2.5 text-white shadow-[0_8px_30px_rgba(3,23,65,0.20)] sm:px-4">
+        <div className="flex w-full min-w-0 flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
           <Link to="/dashboard" className="flex min-w-0 items-center no-underline">
             <div className="min-w-0">
               <h1 className="truncate text-[clamp(18px,2vw,26px)] font-semibold uppercase leading-none tracking-[0.18em] text-white">
@@ -8874,7 +8878,7 @@ export default function OverviewPage() {
             />
           </Link>
 
-          <div className="grid w-full grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
+          <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 xl:flex xl:w-auto xl:flex-wrap xl:items-center">
             <Link
               to="/dashboard"
               replace
@@ -8917,10 +8921,27 @@ export default function OverviewPage() {
       </header>
 
       <style>{`
+        .overview-main-grid {
+          align-content: start;
+        }
+
+        @media (min-width: 1024px) and (max-width: 1535px) {
+          .overview-main-grid {
+            gap: 10px;
+          }
+        }
+
         @media (min-width: 1024px) and (max-height: 820px) {
           .overview-main-grid {
-            grid-template-rows: 172px 104px 40px minmax(0, 1fr);
-            gap: 8px;
+            padding-top: 10px;
+            padding-bottom: 14px;
+          }
+        }
+
+        @media (max-width: 639px) {
+          .overview-main-grid {
+            padding-left: 10px;
+            padding-right: 10px;
           }
         }
 
@@ -8948,13 +8969,13 @@ export default function OverviewPage() {
         }
       `}</style>
 
-      <main className="overview-main-grid mx-auto grid min-h-0 w-full max-w-[1720px] grid-rows-none gap-2.5 overflow-y-auto px-3 py-3 sm:px-5 lg:h-[calc(100dvh-72px)] lg:grid-rows-[minmax(178px,auto)_110px_42px_minmax(0,1fr)] lg:overflow-hidden lg:px-6">
-        <section className="grid min-h-0 grid-cols-1 gap-3 overflow-visible lg:grid-cols-12">
-          <div className="relative col-span-12 min-w-0 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] lg:col-span-4">
+      <main className="overview-main-grid mx-auto grid w-full min-w-0 max-w-[1720px] grid-cols-1 gap-3 overflow-x-hidden px-3 py-3 sm:px-4 md:px-5 lg:px-6 2xl:px-8">
+        <section className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-12">
+          <div className="relative col-span-12 min-w-0 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] xl:col-span-4">
             <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10 bg-white/[0.04]" />
             <div className="pointer-events-none absolute -bottom-24 left-16 h-52 w-52 rounded-full bg-[#17A8DB]/15 blur-3xl" />
 
-     <div className="relative flex h-full items-center justify-between">
+     <div className="relative flex min-h-[132px] min-w-0 items-center justify-between gap-4 sm:min-h-[148px] xl:h-full">
   <div>
     <h2 className="text-[22px] font-bold leading-tight tracking-[-0.03em] text-white">
       Operational Analytics
@@ -8976,7 +8997,7 @@ export default function OverviewPage() {
 </div>
           </div>
 
-       <Card className="print-safe col-span-12 flex min-h-0 min-w-0 flex-col overflow-hidden p-3.5 lg:col-span-8">
+       <Card className="print-safe col-span-12 flex min-h-0 min-w-0 flex-col overflow-hidden p-3.5 xl:col-span-8">
   <div className="flex shrink-0 min-w-0 flex-col gap-3 border-b border-[#E3ECF5] pb-2.5 xl:flex-row xl:items-center xl:justify-between">
     <div className="flex items-center gap-3.5">
       <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#D6E4F2] bg-[#EDF5FA] text-[#1B73C9]">
@@ -8994,7 +9015,7 @@ export default function OverviewPage() {
       </div>
     </div>
 
-    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 xl:w-auto xl:shrink-0">
+    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 2xl:w-auto 2xl:shrink-0">
       <button
         type="button"
         onClick={downloadCsv}
@@ -9077,7 +9098,7 @@ export default function OverviewPage() {
     </div>
   </div>
 
-  <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+  <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
     <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
         Main Equipment
@@ -9249,7 +9270,7 @@ export default function OverviewPage() {
 </Card>
         </section>
 
-        <section className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:h-full lg:grid-cols-5">
+        <section className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
           {selectedEquipment !== "all" && selectedMonitoringCards.length ? (
             <>
               {selectedMonitoringCards.slice(0, 5).map((item, index) => (
@@ -9397,8 +9418,8 @@ export default function OverviewPage() {
 
         {activeWorkspace === "analytics" ? (
           canViewReports ? (
-            <section className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 overflow-hidden lg:grid-cols-12">
-            <Card className="print-safe flex min-h-[260px] min-w-0 flex-col overflow-hidden p-3.5 lg:col-span-12 lg:h-full xl:col-span-8">
+            <section className="grid min-w-0 grid-cols-1 gap-2.5 xl:grid-cols-12">
+            <Card className="print-safe flex min-h-[260px] min-w-0 flex-col overflow-hidden p-3.5 xl:col-span-8">
               <SectionTitle
                 title={`${selectedEquipmentLabel} Load Trend`}
                 subtitle="Consumption trend across the selected period."
@@ -9410,7 +9431,7 @@ export default function OverviewPage() {
               </div>
             </Card>
 
-            <div className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:col-span-12 xl:col-span-4 xl:grid-cols-1 xl:grid-rows-[0.82fr_1.18fr]">
+            <div className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 xl:col-span-4 xl:grid-cols-1">
               <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
                 <SectionTitle
                   title="Electrical Quality"
@@ -9472,15 +9493,15 @@ export default function OverviewPage() {
           )
         ) : (
           canViewLiveReadings ? (
-            <section className="min-h-0 lg:h-full">
-            <Card className="print-safe flex min-h-[360px] min-w-0 max-w-full flex-col overflow-hidden p-3.5 lg:h-full lg:min-h-0">
+            <section className="min-w-0">
+            <Card className="print-safe flex min-h-[360px] min-w-0 max-w-full flex-col overflow-hidden p-3.5">
               <SectionTitle
                 title="Detailed Analytical Readings"
                 subtitle={`${filteredData.length.toLocaleString()} readings match the selected filters.`}
                 icon={Layers3}
               />
 
-              <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-x-hidden xl:hidden">
+              <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-x-hidden lg:hidden">
                 {filteredData.length === 0 ? (
                   <p className="rounded-[12px] border border-[#E2EBF4] px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]">
                     No monitoring readings are available for the assigned Zones.
@@ -9544,7 +9565,7 @@ export default function OverviewPage() {
                 )}
               </div>
 
-              <div className="hidden min-h-0 min-w-0 max-w-full flex-1 overflow-x-auto overflow-y-auto rounded-[12px] border border-[#E2EBF4] xl:block">
+              <div className="hidden min-h-[320px] min-w-0 max-w-full flex-1 overflow-x-auto overflow-y-auto rounded-[12px] border border-[#E2EBF4] lg:block">
                 <table className="w-max min-w-full border-collapse">
                   <thead className="sticky top-0 z-10 bg-[#F5F9FC]/95 backdrop-blur">
                     <tr className="border-b border-[#D8E6F2]">
