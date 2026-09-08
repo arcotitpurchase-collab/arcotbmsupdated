@@ -6415,6 +6415,3265 @@
 
 
 
+// import React, { useMemo, useState } from "react";
+// import * as XLSX from "xlsx";
+// import { Link } from "react-router-dom";
+// import {
+//   Activity,
+//   ArrowDownToLine,
+//   BarChart3,
+//   CalendarDays,
+//   ChevronDown,
+//   Clock3,
+//   Download,
+//   FileJson,
+//   Gauge,
+//   Layers3,
+//   Printer,
+//   RefreshCw,
+//   Search,
+//   ShieldCheck,
+//   TrendingUp,
+//   Zap,
+// } from "lucide-react";
+// import prestigeLogo from "../assets/ser-removebg.png";
+// import { tempApi } from "../tempAdminApi";
+// import { SYSTEM_ROLES, USER_PERMISSIONS } from "../data/permissionOptions";
+// import { buildings } from "../data/bmsData";
+// import {
+//   filterReadingsForAccount,
+//   hasPermission as accountHasPermission,
+//   isSuperAdmin,
+// } from "../utils/accessControl";
+// import { getAllZones, normalizeId } from "../utils/bmsHierarchy";
+
+// const EQUIPMENT_OPTIONS = [
+//   // 33kV SOURCE
+//   { key: "source", label: "33kV Source", group: "33kV Source", multiplier: 0.98, voltageBase: 33000 },
+//   { key: "source-inc1", label: "INC1 Incoming Feeder", group: "33kV Source", multiplier: 0.96, voltageBase: 33000 },
+//   { key: "source-out", label: "OUT Outgoing Busbar", group: "33kV Source", multiplier: 0.94, voltageBase: 33000 },
+//   { key: "source-inc2", label: "INC2 Incoming Feeder", group: "33kV Source", multiplier: 0.92, voltageBase: 33000 },
+//   { key: "source-meter", label: "Metering Unit", group: "33kV Source", multiplier: 0.90, voltageBase: 33000 },
+
+//   // 33kV FEEDER
+//   { key: "feeder", label: "33kV Feeder Panel", group: "33kV Feeder", multiplier: 0.94, voltageBase: 33000 },
+//   { key: "feeder-in-1", label: "Incoming Feeder 1", group: "33kV Feeder", multiplier: 0.93, voltageBase: 33000 },
+//   ...Array.from({ length: 6 }, (_, index) => ({
+//     key: `feeder-og-${index + 1}`,
+//     label: `OG ${index + 1}`,
+//     group: "33kV Feeder",
+//     multiplier: 0.91 - index * 0.018,
+//     voltageBase: 33000,
+//   })),
+
+//   // TRANSFORMERS — 6
+//   { key: "transformer", label: "Transformers", group: "Transformer", multiplier: 0.89, voltageBase: 433 },
+//   ...Array.from({ length: 6 }, (_, index) => ({
+//     key: `transformer-${index + 1}`,
+//     label: `TR-${index + 1}`,
+//     group: "Transformer",
+//     multiplier: 0.87 - index * 0.025,
+//     voltageBase: 433,
+//   })),
+
+//   // LT KIOSK — 6
+//   { key: "kiosk", label: "LT Kiosk", group: "LT Kiosk", multiplier: 0.84, voltageBase: 433 },
+//   ...Array.from({ length: 6 }, (_, index) => ({
+//     key: `kiosk-${index + 1}`,
+//     label: `KIOSK-${index + 1}`,
+//     group: "LT Kiosk",
+//     multiplier: 0.82 - index * 0.022,
+//     voltageBase: 433,
+//   })),
+
+//   // LT BUSDUCT / BUSBAR — 6
+//   { key: "busbar", label: "LT Busduct / Busbar", group: "Busduct", multiplier: 0.81, voltageBase: 433 },
+//   ...Array.from({ length: 6 }, (_, index) => ({
+//     key: `bus-${index + 1}`,
+//     label: `BUS-${index + 1}`,
+//     group: "Busduct",
+//     multiplier: 0.79 - index * 0.022,
+//     voltageBase: 433,
+//   })),
+
+//   // PCC MAIN
+//   { key: "pcc", label: "PCC Main", group: "PCC", multiplier: 0.77, voltageBase: 433 },
+//   { key: "pcc-1", label: "PCC 1", group: "PCC", multiplier: 0.75, voltageBase: 433 },
+//   { key: "pcc-2", label: "PCC 2", group: "PCC", multiplier: 0.73, voltageBase: 433 },
+//   { key: "pcc-3", label: "PCC 3", group: "PCC", multiplier: 0.71, voltageBase: 433 },
+//   { key: "pcc-4", label: "PCC 4", group: "PCC", multiplier: 0.69, voltageBase: 433 },
+
+//   // PCC 1 INNER PANELS
+//   { key: "pcc1-lt6-in", label: "PCC 1 · LT6 IN", group: "PCC 1 Inner", multiplier: 0.45, voltageBase: 433 },
+//   { key: "pcc1-dg1234-in-1", label: "PCC 1 · DG1234 IN", group: "PCC 1 Inner", multiplier: 0.43, voltageBase: 433 },
+//   { key: "pcc1-og1", label: "PCC 1 · OG 1", group: "PCC 1 Inner", multiplier: 0.39, voltageBase: 433 },
+//   { key: "pcc1-rm1-a", label: "PCC 1 · RM1 A", group: "PCC 1 Inner", multiplier: 0.36, voltageBase: 433 },
+//   { key: "pcc1-rm2-a", label: "PCC 1 · RM2 A", group: "PCC 1 Inner", multiplier: 0.34, voltageBase: 433 },
+//   { key: "pcc1-utility1", label: "PCC 1 · Utility 1", group: "PCC 1 Inner", multiplier: 0.31, voltageBase: 433 },
+//   { key: "pcc1-spare1", label: "PCC 1 · Spare 1", group: "PCC 1 Inner", multiplier: 0.08, voltageBase: 433 },
+//   { key: "pcc1-bus-coupler", label: "PCC 1 · Bus Coupler B/C", group: "PCC 1 Inner", multiplier: 0.28, voltageBase: 433 },
+//   { key: "pcc1-lt5-in", label: "PCC 1 · LT5 IN", group: "PCC 1 Inner", multiplier: 0.44, voltageBase: 433 },
+//   { key: "pcc1-dg1234-in-2", label: "PCC 1 · DG 1234 IN", group: "PCC 1 Inner", multiplier: 0.42, voltageBase: 433 },
+//   { key: "pcc1-rm1-b", label: "PCC 1 · RM1 B", group: "PCC 1 Inner", multiplier: 0.35, voltageBase: 433 },
+//   { key: "pcc1-rm2-b", label: "PCC 1 · RM2 B", group: "PCC 1 Inner", multiplier: 0.33, voltageBase: 433 },
+//   { key: "pcc1-utility2", label: "PCC 1 · Utility 2", group: "PCC 1 Inner", multiplier: 0.30, voltageBase: 433 },
+//   { key: "pcc1-spare2", label: "PCC 1 · Spare 2", group: "PCC 1 Inner", multiplier: 0.08, voltageBase: 433 },
+
+//   // PCC 2 INNER PANELS
+//   { key: "pcc2-lt1-in", label: "PCC 2 · LT1 IN", group: "PCC 2 Inner", multiplier: 0.45, voltageBase: 433 },
+//   { key: "pcc2-dg1234-in-1", label: "PCC 2 · DG1234 IN", group: "PCC 2 Inner", multiplier: 0.43, voltageBase: 433 },
+//   { key: "pcc2-og1", label: "PCC 2 · OG 1", group: "PCC 2 Inner", multiplier: 0.39, voltageBase: 433 },
+//   { key: "pcc2-rm1-a", label: "PCC 2 · RM1 A", group: "PCC 2 Inner", multiplier: 0.36, voltageBase: 433 },
+//   { key: "pcc2-rm2-a", label: "PCC 2 · RM2 A", group: "PCC 2 Inner", multiplier: 0.34, voltageBase: 433 },
+//   { key: "pcc2-utility1", label: "PCC 2 · Utility 1", group: "PCC 2 Inner", multiplier: 0.31, voltageBase: 433 },
+//   { key: "pcc2-spare1", label: "PCC 2 · Spare 1", group: "PCC 2 Inner", multiplier: 0.08, voltageBase: 433 },
+//   { key: "pcc2-bus-coupler", label: "PCC 2 · Bus Coupler B/C", group: "PCC 2 Inner", multiplier: 0.28, voltageBase: 433 },
+//   { key: "pcc2-lt2-in", label: "PCC 2 · LT2 IN", group: "PCC 2 Inner", multiplier: 0.44, voltageBase: 433 },
+//   { key: "pcc2-dg1234-in-2", label: "PCC 2 · DG 1234 IN", group: "PCC 2 Inner", multiplier: 0.42, voltageBase: 433 },
+//   { key: "pcc2-rm1-b", label: "PCC 2 · RM1 B", group: "PCC 2 Inner", multiplier: 0.35, voltageBase: 433 },
+//   { key: "pcc2-rm2-b", label: "PCC 2 · RM2 B", group: "PCC 2 Inner", multiplier: 0.33, voltageBase: 433 },
+//   { key: "pcc2-utility2", label: "PCC 2 · Utility 2", group: "PCC 2 Inner", multiplier: 0.30, voltageBase: 433 },
+//   { key: "pcc2-spare2", label: "PCC 2 · Spare 2", group: "PCC 2 Inner", multiplier: 0.08, voltageBase: 433 },
+
+//   // PCC 3 / PCC 4 INNER — IN + 10 OG EACH
+//   { key: "pcc3-lt4-in", label: "PCC 3 · LT4 IN", group: "PCC 3 Inner", multiplier: 0.40, voltageBase: 433 },
+//   { key: "pcc3-dg567-in", label: "PCC 3 · DG567 IN", group: "PCC 3 Inner", multiplier: 0.38, voltageBase: 433 },
+//   ...Array.from({ length: 10 }, (_, index) => ({
+//     key: `pcc3-og-${index + 1}`,
+//     label: `PCC 3 · OG ${index + 1}`,
+//     group: "PCC 3 Inner",
+//     multiplier: 0.28 - index * 0.014,
+//     voltageBase: 433,
+//   })),
+//   { key: "pcc4-lt3-in", label: "PCC 4 · LT3 IN", group: "PCC 4 Inner", multiplier: 0.40, voltageBase: 433 },
+//   { key: "pcc4-dg567-in", label: "PCC 4 · DG567 IN", group: "PCC 4 Inner", multiplier: 0.38, voltageBase: 433 },
+//   ...Array.from({ length: 10 }, (_, index) => ({
+//     key: `pcc4-og-${index + 1}`,
+//     label: `PCC 4 · OG ${index + 1}`,
+//     group: "PCC 4 Inner",
+//     multiplier: 0.28 - index * 0.014,
+//     voltageBase: 433,
+//   })),
+
+//   // UPS FLOW FROM PCC 1 / PCC 2
+//   { key: "ups-30kva-1", label: "UPS 30kVA-1", group: "UPS", multiplier: 0.16, voltageBase: 415 },
+//   { key: "ups-30kva-2", label: "UPS 30kVA-2", group: "UPS", multiplier: 0.15, voltageBase: 415 },
+//   { key: "ups-10kva-1", label: "UPS 10kVA-1", group: "UPS", multiplier: 0.08, voltageBase: 415 },
+//   { key: "ups-10kva-2", label: "UPS 10kVA-2", group: "UPS", multiplier: 0.075, voltageBase: 415 },
+
+//   // RAISING MAIN
+//   { key: "raising-main", label: "Raising Main", group: "Raising Main", multiplier: 0.66, voltageBase: 433 },
+//   { key: "rm-1", label: "Raising Main 1", group: "Raising Main", multiplier: 0.34, voltageBase: 433 },
+//   { key: "rm-2", label: "Raising Main 2", group: "Raising Main", multiplier: 0.32, voltageBase: 433 },
+//   { key: "rm-3", label: "Raising Main 3", group: "Raising Main", multiplier: 0.31, voltageBase: 433 },
+//   { key: "rm-4", label: "Raising Main 4", group: "Raising Main", multiplier: 0.29, voltageBase: 433 },
+
+//   // WINGS
+//   { key: "wing-a", label: "Wing A", group: "Wing", multiplier: 0.30, voltageBase: 433 },
+//   { key: "wing-b", label: "Wing B", group: "Wing", multiplier: 0.28, voltageBase: 433 },
+
+//   // DIESEL GENERATORS — 7
+//   { key: "dg", label: "Diesel Generator Plant", group: "DG", multiplier: 0.52, voltageBase: 433 },
+//   ...Array.from({ length: 7 }, (_, index) => ({
+//     key: `dg-${index + 1}`,
+//     label: `DG-${index + 1}`,
+//     group: "DG",
+//     multiplier: 0.30 - index * 0.018,
+//     voltageBase: 433,
+//   })),
+
+//   // AUXILIARY SYSTEMS
+//   { key: "hvac", label: "HVAC", group: "HVAC", multiplier: 0.34, voltageBase: 433 },
+//   { key: "water-management", label: "Water Management", group: "Water Management", multiplier: 0.14, voltageBase: 433 },
+//   { key: "stp", label: "STP", group: "Water Management", multiplier: 0.10, voltageBase: 433 },
+//   { key: "wtp", label: "WTP", group: "Water Management", multiplier: 0.095, voltageBase: 433 },
+//   ...Array.from({ length: 4 }, (_, index) => ({
+//     key: `tank-${index + 1}`,
+//     label: `Tank Level-${index + 1}`,
+//     group: "Water Management",
+//     multiplier: 0.045 + index * 0.004,
+//     voltageBase: 433,
+//   })),
+//   // FIRE & LIFE SAFETY — synced with MainOverview
+//   { key: "fire-alarms", label: "Fire Alarms", group: "Fire", multiplier: 0.06, voltageBase: 230 },
+//   { key: "fire-fighting", label: "Fire Fighting", group: "Fire", multiplier: 0.055, voltageBase: 230 },
+//   { key: "fire-pump", label: "Fire Pump", group: "Fire", multiplier: 0.05, voltageBase: 415 },
+// ];
+
+// const EQUIPMENT_BY_KEY = Object.fromEntries(
+//   EQUIPMENT_OPTIONS.map((equipment) => [equipment.key, equipment]),
+// );
+
+// const MAIN_FLOW_OPTIONS = [
+//   { key: "source", label: "33kV Source", groups: ["33kV Source"] },
+//   { key: "feeder", label: "33kV Feeder", groups: ["33kV Feeder"] },
+//   { key: "transformer", label: "Transformer", groups: ["Transformer"] },
+//   { key: "kiosk", label: "LT Kiosk", groups: ["LT Kiosk"] },
+//   { key: "busbar", label: "Busduct", groups: ["Busduct"] },
+//   {
+//     key: "pcc",
+//     label: "PCC",
+//     groups: ["PCC", "PCC 1 Inner", "PCC 2 Inner", "PCC 3 Inner", "PCC 4 Inner"],
+//   },
+//   { key: "ups", label: "UPS", groups: ["UPS"] },
+//   { key: "raising-main", label: "Raising Main", groups: ["Raising Main"] },
+//   { key: "wing", label: "Wing", groups: ["Wing"] },
+//   { key: "dg", label: "DG", groups: ["DG"] },
+//   { key: "hvac", label: "HVAC", groups: ["HVAC"] },
+//   { key: "water-management", label: "Water Management", groups: ["Water Management"] },
+//   { key: "fire", label: "Fire", groups: ["Fire"] },
+// ];
+
+// const PARENT_EQUIPMENT_KEYS = new Set([
+//   "source",
+//   "feeder",
+//   "transformer",
+//   "kiosk",
+//   "busbar",
+//   "pcc",
+//   "raising-main",
+//   "dg",
+//   "water-management",
+// ]);
+
+// const getInnerEquipmentForFlow = (flowKey) => {
+//   // Main Equipment = All means every individual monitored asset
+//   // from every main flow is available for download.
+//   if (flowKey === "all") {
+//     return EQUIPMENT_OPTIONS.filter(
+//       (equipment) => !PARENT_EQUIPMENT_KEYS.has(equipment.key),
+//     );
+//   }
+
+//   const flow = MAIN_FLOW_OPTIONS.find((item) => item.key === flowKey);
+//   if (!flow) return [];
+
+//   let options = EQUIPMENT_OPTIONS.filter(
+//     (equipment) =>
+//       flow.groups.includes(equipment.group) &&
+//       !PARENT_EQUIPMENT_KEYS.has(equipment.key),
+//   );
+
+//   // Single-item systems such as HVAC may have no separate children.
+//   if (!options.length) {
+//     const direct = EQUIPMENT_BY_KEY[flowKey];
+//     if (direct) options = [direct];
+//   }
+
+//   return options;
+// };
+
+// const EQUIPMENT_GROUPS = EQUIPMENT_OPTIONS.reduce((groups, equipment) => {
+//   const group = equipment.group || "Other";
+//   if (!groups[group]) groups[group] = [];
+//   groups[group].push(equipment);
+//   return groups;
+// }, {});
+
+
+// const formatDateKey = (date) => {
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, "0");
+//   const day = String(date.getDate()).padStart(2, "0");
+//   return `${year}-${month}-${day}`;
+// };
+
+// const getCurrentMonth = () => {
+//   const date = new Date();
+//   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+// };
+
+
+// const getMainFlowForEquipment = (equipment) => {
+//   if (!equipment) return null;
+
+//   return (
+//     MAIN_FLOW_OPTIONS.find((flow) =>
+//       flow.groups.includes(equipment.group),
+//     ) || null
+//   );
+// };
+
+// const buildFlowSpecificFeatures = ({
+//   equipment,
+//   equipmentIndex,
+//   hour,
+//   dayOffset,
+//   voltage,
+//   current,
+//   powerFactor,
+//   energyKwh,
+//   energyKvah,
+// }) => {
+//   const key = equipment.key;
+
+//   const electrical = {
+//     kWh: Number(energyKwh.toFixed(2)),
+//     kVAh: Number(energyKvah.toFixed(2)),
+//     voltage: Number(voltage),
+//     powerFactor: Number(powerFactor),
+//     amps: Number(current),
+//     status: "Live",
+//   };
+
+//   // ---------------------------------------------------------------
+//   // 33kV SOURCE
+//   // MainOverview SourceBox monitoring:
+//   // kWh | kVAh | PF | Voltage | Current
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "33kV Source") {
+//     const sourceValues = {
+//       "source-inc1": { kWh: 1280, kVAh: 1195, powerFactor: 0.98, voltage: 33000, amps: 420 },
+//       "source-out": { kWh: 1560, kVAh: 1430, powerFactor: 0.99, voltage: 33000, amps: 460 },
+//       "source-inc2": { kWh: 1110, kVAh: 1020, powerFactor: 0.97, voltage: 33000, amps: 390 },
+//       "source-meter": { kWh: 1420, kVAh: 1300, powerFactor: 0.98, voltage: 33000, amps: 435 },
+//     };
+
+//     return {
+//       ...(sourceValues[key] || electrical),
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // 33kV FEEDER
+//   // MainOverview feeder monitoring:
+//   // kWh | kVAh | PF | AMPS | Voltage
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "33kV Feeder") {
+//     const feederValues = {
+//       "feeder-incoming-1": { kWh: 1480, kVAh: 1360, powerFactor: 0.98, voltage: 33000, amps: 430 },
+//       "feeder-og-1": { kWh: 980, kVAh: 910, powerFactor: 0.97, voltage: 33000, amps: 280 },
+//       "feeder-og-2": { kWh: 1020, kVAh: 960, powerFactor: 0.98, voltage: 33000, amps: 295 },
+//       "feeder-og-3": { kWh: 1120, kVAh: 1040, powerFactor: 0.98, voltage: 33000, amps: 310 },
+//       "feeder-og-4": { kWh: 940, kVAh: 870, powerFactor: 0.96, voltage: 33000, amps: 265 },
+//       "feeder-og-5": { kWh: 1080, kVAh: 990, powerFactor: 0.98, voltage: 33000, amps: 300 },
+//       "feeder-og-6": { kWh: 1150, kVAh: 1080, powerFactor: 0.99, voltage: 33000, amps: 325 },
+//     };
+
+//     return {
+//       ...(feederValues[key] || electrical),
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // TRANSFORMER
+//   // MainOverview transformer cards:
+//   // Oil Temp | Winding Temp | Buchholz Relay | Load
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "Transformer") {
+//     const transformerValues = {
+//       "tr-1": { oilTemperature: 54, windingTemperature: 61, buchholzRelay: "Healthy", loadPercent: 68 },
+//       "tr-2": { oilTemperature: 52, windingTemperature: 59, buchholzRelay: "Healthy", loadPercent: 62 },
+//       "tr-3": { oilTemperature: 55, windingTemperature: 60, buchholzRelay: "Healthy", loadPercent: 71 },
+//       "tr-4": { oilTemperature: 53, windingTemperature: 58, buchholzRelay: "Healthy", loadPercent: 65 },
+//       "tr-5": { oilTemperature: 56, windingTemperature: 63, buchholzRelay: "Healthy", loadPercent: 74 },
+//       "tr-6": { oilTemperature: 51, windingTemperature: 57, buchholzRelay: "Healthy", loadPercent: 60 },
+//     };
+
+//     return {
+//       ...(transformerValues[key] || {
+//         oilTemperature: 54,
+//         windingTemperature: 61,
+//         buchholzRelay: "Healthy",
+//         loadPercent: 68,
+//       }),
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // LT KIOSK
+//   // MainOverview KioskMonitorBox:
+//   // kWh | kVAh | PF | AMPS | Voltage
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "LT Kiosk") {
+//     const kioskNumber = Number(key.split("-")[1] || 1);
+//     return {
+//       kWh: 1280 + (kioskNumber - 1) * 60,
+//       kVAh: 1195 + (kioskNumber - 1) * 55,
+//       powerFactor: kioskNumber % 2 === 1 ? 0.98 : 0.97,
+//       amps: 420 + (kioskNumber - 1) * 8,
+//       voltage: 433,
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // BUSDuct / BUSBAR
+//   // MainOverview BusbarMonitorBox:
+//   // Temp | Vibration | Health
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "Busduct") {
+//     const busNumber = Number(key.split("-")[1] || 1);
+//     return {
+//       temperature: 42 + (busNumber - 1),
+//       vibration: "Normal",
+//       health: "ON",
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // PCC
+//   // MainOverview PanelFeatures:
+//   // kWh | kVAh | V | PF | Amps + Live/Inactive status
+//   // ---------------------------------------------------------------
+//   if (
+//     equipment.group === "PCC" ||
+//     equipment.group === "PCC 1 Inner" ||
+//     equipment.group === "PCC 2 Inner" ||
+//     equipment.group === "PCC 3 Inner" ||
+//     equipment.group === "PCC 4 Inner"
+//   ) {
+//     return {
+//       kWh: 1245 + (equipmentIndex % 14) * 18,
+//       kVAh: 1180 + (equipmentIndex % 14) * 15,
+//       voltage: 433,
+//       powerFactor: equipmentIndex % 2 === 0 ? 0.98 : 0.97,
+//       amps: 210 + (equipmentIndex % 14) * 4,
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // UPS
+//   // MainOverview createUpsMonitoringData:
+//   // Capacity | Input V | Output V | Load | Battery | Input Hz |
+//   // Output Hz | Battery V | Backup Time | Mode | Status
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "UPS") {
+//     const upsIndex = Math.max(
+//       0,
+//       ["ups-30kva-1", "ups-30kva-2", "ups-10kva-1", "ups-10kva-2"].indexOf(key),
+//     );
+//     const is30kva = key.includes("30kva");
+
+//     return {
+//       capacity: is30kva ? "30 kVA" : "10 kVA",
+//       inputVoltage: is30kva ? 414 + upsIndex : 412 + upsIndex,
+//       outputVoltage: is30kva ? 415 + (upsIndex % 2) : 414 + (upsIndex % 2),
+//       loadPercent: is30kva ? 66 + upsIndex * 3 : 48 + upsIndex * 4,
+//       batteryPercent: 94 - upsIndex * 2,
+//       inputFrequency: 50.0,
+//       outputFrequency: 50.0,
+//       batteryVoltage: is30kva ? 216 - upsIndex : 192 - upsIndex,
+//       backupTimeMinutes: is30kva ? 42 - upsIndex * 3 : 58 - upsIndex * 4,
+//       mode: "Online",
+//       status: "Normal",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // RAISING MAIN
+//   // MainOverview RMBox:
+//   // kWh | kVAh | V | PF | Amps + Live/Inactive
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "Raising Main") {
+//     const rmNumber = Number(key.split("-")[1] || 1);
+//     return {
+//       kWh: 1245 + (rmNumber - 1) * 65,
+//       kVAh: 1180 + (rmNumber - 1) * 58,
+//       voltage: 433,
+//       powerFactor: rmNumber % 2 === 1 ? 0.98 : 0.97,
+//       amps: 210 + (rmNumber - 1) * 12,
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // DG
+//   // MainOverview DgMonitorBox:
+//   // kWh | kVAh | PF | AMPS | Voltage
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "DG") {
+//     const dgNumber = Number(key.split("-")[1] || 1);
+//     return {
+//       kWh: 1460 + (dgNumber - 1) * 75,
+//       kVAh: 1375 + (dgNumber - 1) * 68,
+//       powerFactor: (dgNumber - 1) % 3 === 0 ? 0.97 : 0.98,
+//       amps: 510 + (dgNumber - 1) * 14,
+//       voltage: 433,
+//       status: "Live",
+//     };
+//   }
+
+//   // ---------------------------------------------------------------
+//   // WATER MANAGEMENT
+//   // MainOverview STP/WTP:
+//   // Inlet Flow | Outlet Flow | pH | Turbidity | Status
+//   // MainOverview Tanks:
+//   // Level | Volume | Inlet Flow | Outlet Flow | Status
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "Water Management") {
+//     if (key === "stp") {
+//       return {
+//         inletFlow: 82,
+//         outletFlow: 76,
+//         ph: 7.2,
+//         turbidity: 2.4,
+//         status: "Running",
+//       };
+//     }
+
+//     if (key === "wtp") {
+//       return {
+//         inletFlow: 96,
+//         outletFlow: 91,
+//         ph: 7.1,
+//         turbidity: 1.8,
+//         status: "Running",
+//       };
+//     }
+
+//     const tankValues = {
+//       "tank-1": { levelPercent: 78, volumePercent: 78, inletFlow: 34, outletFlow: 29, status: "Normal" },
+//       "tank-2": { levelPercent: 64, volumePercent: 64, inletFlow: 28, outletFlow: 25, status: "Normal" },
+//       "tank-3": { levelPercent: 86, volumePercent: 86, inletFlow: 31, outletFlow: 27, status: "Normal" },
+//       "tank-4": { levelPercent: 52, volumePercent: 52, inletFlow: 24, outletFlow: 22, status: "Normal" },
+//     };
+
+//     if (tankValues[key]) return tankValues[key];
+//   }
+
+//   // ---------------------------------------------------------------
+//   // FIRE & LIFE SAFETY
+//   // Synced with the current MainOverview Fire popup.
+//   // ---------------------------------------------------------------
+//   if (equipment.group === "Fire") {
+//     if (key === "fire-alarms") {
+//       return {
+//         smokeDetectors: 128,
+//         heatDetectors: 64,
+//         alarmZones: 12,
+//         activeAlarms: 0,
+//         status: "Active",
+//       };
+//     }
+
+//     if (key === "fire-fighting") {
+//       return {
+//         systemPressure: 7.2,
+//         hydrantNetwork: "Normal",
+//         sprinklerNetwork: "Normal",
+//         mainValve: "Open",
+//         status: "Active",
+//       };
+//     }
+
+//     if (key === "fire-pump") {
+//       return {
+//         dischargePressure: 7.5,
+//         pumpState: "Standby",
+//         autoMode: "Enabled",
+//         controller: "Healthy",
+//         status: "Active",
+//       };
+//     }
+//   }
+
+//   // Wing and HVAC do not expose detailed monitoring fields in MainOverview.
+//   if (
+//     equipment.group === "Wing" ||
+//     equipment.group === "HVAC"
+//   ) {
+//     return { status: "Active" };
+//   }
+
+//   return electrical;
+// };
+
+// const getFlowFeatureColumns = (equipment) => {
+//   if (!equipment) return [];
+
+//   const electricalColumns = [
+//     ["kWh", (row) => row.featureData?.kWh],
+//     ["kVAh", (row) => row.featureData?.kVAh],
+//     ["PF", (row) => row.featureData?.powerFactor],
+//     [
+//       "V / kV",
+//       (row) =>
+//         getDisplayVoltage(
+//           row.featureData?.voltage ?? row.voltage,
+//         ),
+//     ],
+//     ["Amps", (row) => row.featureData?.amps],
+//     ["Status", (row) => row.featureData?.status],
+//   ];
+
+//   if (equipment.group === "Transformer") {
+//     return [
+//       ["Oil Temp °C", (row) => row.featureData?.oilTemperature],
+//       ["Winding Temp °C", (row) => row.featureData?.windingTemperature],
+//       ["Buchholz Relay", (row) => row.featureData?.buchholzRelay],
+//       ["Load %", (row) => row.featureData?.loadPercent],
+//       ["Status", (row) => row.featureData?.status],
+//     ];
+//   }
+
+//   if (equipment.group === "Busduct") {
+//     return [
+//       ["Temperature °C", (row) => row.featureData?.temperature],
+//       ["Vibration", (row) => row.featureData?.vibration],
+//       ["Health", (row) => row.featureData?.health],
+//       ["Status", (row) => row.featureData?.status],
+//     ];
+//   }
+
+//   if (equipment.group === "UPS") {
+//     return [
+//       ["Capacity", (row) => row.featureData?.capacity],
+//       ["Input Voltage V", (row) => row.featureData?.inputVoltage],
+//       ["Output Voltage V", (row) => row.featureData?.outputVoltage],
+//       ["Load %", (row) => row.featureData?.loadPercent],
+//       ["Battery %", (row) => row.featureData?.batteryPercent],
+//       ["Input Frequency Hz", (row) => row.featureData?.inputFrequency],
+//       ["Output Frequency Hz", (row) => row.featureData?.outputFrequency],
+//       ["Battery Voltage V DC", (row) => row.featureData?.batteryVoltage],
+//       ["Backup Time min", (row) => row.featureData?.backupTimeMinutes],
+//       ["Mode", (row) => row.featureData?.mode],
+//       ["Status", (row) => row.featureData?.status],
+//     ];
+//   }
+
+//   if (equipment.group === "Water Management") {
+//     if (equipment.key === "stp" || equipment.key === "wtp") {
+//       return [
+//         ["Inlet Flow m³/h", (row) => row.featureData?.inletFlow],
+//         ["Outlet Flow m³/h", (row) => row.featureData?.outletFlow],
+//         ["pH", (row) => row.featureData?.ph],
+//         ["Turbidity NTU", (row) => row.featureData?.turbidity],
+//         ["Status", (row) => row.featureData?.status],
+//       ];
+//     }
+
+//     if (equipment.key.startsWith("tank-")) {
+//       return [
+//         ["Level %", (row) => row.featureData?.levelPercent],
+//         ["Volume %", (row) => row.featureData?.volumePercent],
+//         ["Inlet Flow m³/h", (row) => row.featureData?.inletFlow],
+//         ["Outlet Flow m³/h", (row) => row.featureData?.outletFlow],
+//         ["Status", (row) => row.featureData?.status],
+//       ];
+//     }
+//   }
+
+//   if (equipment.group === "Fire") {
+//     if (equipment.key === "fire-alarms") {
+//       return [
+//         ["Smoke Detectors", (row) => row.featureData?.smokeDetectors],
+//         ["Heat Detectors", (row) => row.featureData?.heatDetectors],
+//         ["Alarm Zones", (row) => row.featureData?.alarmZones],
+//         ["Active Alarms", (row) => row.featureData?.activeAlarms],
+//         ["Status", (row) => row.featureData?.status],
+//       ];
+//     }
+
+//     if (equipment.key === "fire-fighting") {
+//       return [
+//         ["System Pressure bar", (row) => row.featureData?.systemPressure],
+//         ["Hydrant Network", (row) => row.featureData?.hydrantNetwork],
+//         ["Sprinkler Network", (row) => row.featureData?.sprinklerNetwork],
+//         ["Main Valve", (row) => row.featureData?.mainValve],
+//         ["Status", (row) => row.featureData?.status],
+//       ];
+//     }
+
+//     if (equipment.key === "fire-pump") {
+//       return [
+//         ["Discharge Pressure bar", (row) => row.featureData?.dischargePressure],
+//         ["Pump State", (row) => row.featureData?.pumpState],
+//         ["Auto Mode", (row) => row.featureData?.autoMode],
+//         ["Controller", (row) => row.featureData?.controller],
+//         ["Status", (row) => row.featureData?.status],
+//       ];
+//     }
+//   }
+
+//   if (
+//     equipment.group === "Wing" ||
+//     equipment.group === "HVAC"
+//   ) {
+//     return [["Status", (row) => row.featureData?.status]];
+//   }
+
+//   return electricalColumns;
+// };
+
+// const getSelectedFeatureColumns = (
+//   equipmentKeys,
+//   equipmentOptions,
+// ) => {
+//   const columns = [];
+//   const seen = new Set();
+
+//   equipmentOptions
+//     .filter((equipment) => equipmentKeys.includes(equipment.key))
+//     .forEach((equipment) => {
+//       getFlowFeatureColumns(equipment).forEach(([heading]) => {
+//         if (!seen.has(heading)) {
+//           seen.add(heading);
+//           columns.push(heading);
+//         }
+//       });
+//     });
+
+//   return columns;
+// };
+
+// const getFeatureValueByHeading = (row, heading) => {
+//   const equipment = EQUIPMENT_BY_KEY[row.equipment];
+//   if (!equipment) return "";
+
+//   const column = getFlowFeatureColumns(equipment).find(
+//     ([columnHeading]) => columnHeading === heading,
+//   );
+
+//   if (!column) return "";
+
+//   const value = column[1](row);
+//   return value ?? "";
+// };
+
+// const getLatestMonitoringRow = (rows, equipmentKey) => {
+//   const equipmentRows = rows
+//     .filter((row) => row.equipment === equipmentKey)
+//     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+//   return equipmentRows[0] || null;
+// };
+
+// const getMonitoringFeatureCards = (rows, equipmentKey) => {
+//   const equipment = EQUIPMENT_BY_KEY[equipmentKey];
+//   const row = getLatestMonitoringRow(rows, equipmentKey);
+
+//   if (!equipment || !row) return [];
+
+//   return getFlowFeatureColumns(equipment)
+//     .filter(([heading]) => heading !== "Status")
+//     .map(([heading, accessor]) => ({
+//       label: heading,
+//       value: accessor(row),
+//     }));
+// };
+
+// const buildFlowWiseExportRows = (rows, equipments, selectedPeriod) => {
+//   const result = [];
+//   const isHourlyOutput = selectedPeriod === "hourly" || selectedPeriod === "daily";
+
+//   equipments.forEach((equipment) => {
+//     const equipmentRows = rows
+//       .filter((row) => row.equipment === equipment.key)
+//       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+//     if (!equipmentRows.length) return;
+
+//     if (isHourlyOutput) {
+//       equipmentRows.forEach((row) => {
+//         result.push({
+//           equipment,
+//           periodValue:
+//             selectedPeriod === "hourly"
+//               ? row.timestamp.slice(11, 16)
+//               : `${row.timestamp.slice(0, 10)} ${row.timestamp.slice(11, 16)}`,
+//           sourceRow: row,
+//         });
+//       });
+//       return;
+//     }
+
+//     const groups = equipmentRows.reduce((acc, row) => {
+//       let key = row.timestamp.slice(0, 10);
+
+//       if (selectedPeriod === "weekly") {
+//         key = row.timestamp.slice(0, 10);
+//       } else if (selectedPeriod === "monthly") {
+//         key = row.timestamp.slice(0, 10);
+//       } else if (selectedPeriod === "custom") {
+//         key = row.timestamp.slice(0, 10);
+//       }
+
+//       if (!acc[key]) acc[key] = [];
+//       acc[key].push(row);
+//       return acc;
+//     }, {});
+
+//     Object.entries(groups)
+//       .sort(([a], [b]) => a.localeCompare(b))
+//       .forEach(([key, groupRows]) => {
+//         const latest = groupRows[groupRows.length - 1];
+//         const aggregate = {
+//           ...latest,
+
+//           // Preserve the exact latest monitoring payload for this
+//           // equipment first. Transformer/Busduct/UPS/Water values are
+//           // therefore never replaced by generic electrical fields.
+//           featureData: {
+//             ...latest.featureData,
+//           },
+//         };
+
+//         // Only electrical equipment uses cumulative/average electrical
+//         // metrics for daily/weekly/monthly exports.
+//         const electricalGroups = new Set([
+//           "33kV Source",
+//           "33kV Feeder",
+//           "LT Kiosk",
+//           "PCC",
+//           "PCC 1 Inner",
+//           "PCC 2 Inner",
+//           "PCC 3 Inner",
+//           "PCC 4 Inner",
+//           "Raising Main",
+//           "DG",
+//         ]);
+
+//         if (electricalGroups.has(equipment.group)) {
+//           aggregate.energyKwh = sumBy(groupRows, "energyKwh");
+//           aggregate.energyKvah = sumBy(groupRows, "energyKvah");
+//           aggregate.voltage = averageBy(groupRows, "voltage");
+//           aggregate.current = averageBy(groupRows, "current");
+//           aggregate.powerFactor = averageBy(groupRows, "powerFactor");
+
+//           aggregate.featureData = {
+//             ...aggregate.featureData,
+//             kWh: roundExcel(sumBy(groupRows, "energyKwh"), 2),
+//             kVAh: roundExcel(sumBy(groupRows, "energyKvah"), 2),
+//             voltage: roundExcel(averageBy(groupRows, "voltage"), 2),
+//             amps: roundExcel(averageBy(groupRows, "current"), 2),
+//             powerFactor: roundExcel(
+//               averageBy(groupRows, "powerFactor"),
+//               3,
+//             ),
+//           };
+//         }
+
+//         result.push({
+//           equipment,
+//           periodValue: key,
+//           sourceRow: aggregate,
+//         });
+//       });
+//   });
+
+//   return result;
+// };
+
+// const generateAnalyticsData = () => {
+//   const rows = [];
+//   const today = new Date();
+
+//   for (let dayOffset = 60; dayOffset >= 0; dayOffset -= 1) {
+//     const date = new Date(today);
+//     date.setDate(today.getDate() - dayOffset);
+//     const dateKey = formatDateKey(date);
+
+//     EQUIPMENT_OPTIONS.forEach((equipment, equipmentIndex) => {
+//       const multiplier = equipment.multiplier ?? 0.5;
+
+//       for (let hour = 0; hour < 24; hour += 1) {
+//         const daylightFactor =
+//           hour >= 6 && hour <= 22
+//             ? 0.72 + Math.sin(((hour - 6) / 16) * Math.PI) * 0.38
+//             : 0.52;
+
+//         const weekdayFactor =
+//           date.getDay() === 0 || date.getDay() === 6 ? 0.88 : 1;
+
+//         const baseIncoming = 1080 * multiplier * daylightFactor * weekdayFactor;
+
+//         const dailyNoise =
+//           ((dayOffset * 13 + hour * 7 + equipmentIndex * 11) % 35) - 17;
+
+//         const incomingKw = Math.max(30, Math.round(baseIncoming + dailyNoise));
+
+//         const lossRatio =
+//           0.025 + (equipmentIndex % 8) * 0.004;
+
+//         const outgoingKw = Math.max(
+//           20,
+//           Math.round(incomingKw * (1 - lossRatio)),
+//         );
+
+//         const energyKwh = Number(((incomingKw + outgoingKw) / 2).toFixed(2));
+
+//         const voltageBase = equipment.voltageBase ?? 433;
+
+//         const voltageVariation =
+//           voltageBase >= 10000
+//             ? ((hour + dayOffset) % 9) * 18 - 72
+//             : ((hour + equipmentIndex) % 7) - 3;
+
+//         const voltage = voltageBase + voltageVariation;
+//         const current = Number(
+//           (
+//             (outgoingKw * 1000) /
+//             (Math.sqrt(3) * voltage * (0.95 + (equipmentIndex % 3) * 0.01))
+//           ).toFixed(2),
+//         );
+
+//         const powerFactor = Number(
+//           (0.95 + ((hour + equipmentIndex) % 4) * 0.01).toFixed(2),
+//         );
+
+//         // Frontend apparent-energy value.
+//         // Later replace with the actual meter/API kVAh register.
+//         const energyKvah = Number(
+//           (energyKwh / Math.max(powerFactor, 0.01)).toFixed(2),
+//         );
+
+//         const timestamp = `${dateKey}T${String(hour).padStart(2, "0")}:00:00`;
+
+//         const featureData = buildFlowSpecificFeatures({
+//           equipment,
+//           equipmentIndex,
+//           hour,
+//           dayOffset,
+//           voltage,
+//           current,
+//           powerFactor,
+//           energyKwh,
+//           energyKvah,
+//         });
+
+//         rows.push({
+//           timestamp,
+//           equipment: equipment.key,
+//           equipmentLabel: equipment.label,
+//           flowGroup: equipment.group || equipment.label,
+//           incomingKw,
+//           outgoingKw,
+//           energyKwh,
+//           energyKvah,
+//           voltage,
+//           current,
+//           powerFactor,
+//           featureData,
+//           status:
+//             featureData?.status ||
+//             (outgoingKw / incomingKw < 0.88 ? "Attention" : "Normal"),
+//         });
+//       }
+//     });
+//   }
+
+//   return rows;
+// };
+
+// const ANALYTICS_DATA = generateAnalyticsData();
+
+// const Card = ({ children, className = "" }) => (
+//   <div
+//     className={`relative overflow-hidden rounded-[14px] border border-[#C9D8E7] bg-white shadow-[0_10px_26px_rgba(8,31,92,0.07)] ${className}`}
+//   >
+//     <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#17A8DB]/45 to-transparent" />
+//     {children}
+//   </div>
+// );
+
+// const SectionTitle = ({ title, subtitle, rightContent, icon: Icon }) => (
+//   <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
+//     <div className="flex items-start gap-3">
+//       {Icon && (
+//         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-[#C9DCEF] bg-[linear-gradient(145deg,#F8FBFF,#E8F2FA)] text-[#1B73C9] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+//           <Icon size={18} strokeWidth={2} />
+//         </div>
+//       )}
+
+//       <div>
+//         <h2 className="text-[14px] font-semibold tracking-[-0.01em] text-[#06224F]">
+//           {title}
+//         </h2>
+
+//         {subtitle && (
+//           <p className="mt-1 max-w-3xl text-[9px] leading-relaxed text-[#687F99]">
+//             {subtitle}
+//           </p>
+//         )}
+//       </div>
+//     </div>
+
+//     {rightContent}
+//   </div>
+// );
+
+// const RestrictedState = ({ title, message, icon: Icon = ShieldCheck }) => (
+//   <Card className="flex h-full min-h-[260px] flex-col items-center justify-center p-6 text-center">
+//     <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-amber-200 bg-amber-50 text-amber-600">
+//       <Icon size={22} />
+//     </div>
+//     <h3 className="mt-4 text-[15px] font-bold text-[#06224F]">
+//       {title}
+//     </h3>
+//     <p className="mt-2 max-w-md text-[11px] leading-6 text-[#687F99]">
+//       {message}
+//     </p>
+//   </Card>
+// );
+
+// const MetricCard = ({
+//   label,
+//   value,
+//   unit,
+//   tone = "blue",
+//   icon: Icon,
+//   trend,
+// }) => {
+//   const toneMap = {
+//     blue: {
+//       text: "text-[#1B73C9]",
+//       icon: "text-[#1B73C9]",
+//       iconBg: "bg-[#EAF4FD]",
+//       iconBorder: "border-[#D8E6FF]",
+//       accent: "from-[#1B73C9] to-[#17A8DB]",
+//     },
+//     cyan: {
+//       text: "text-[#0E86B7]",
+//       icon: "text-[#0E86B7]",
+//       iconBg: "bg-[#ECFEFF]",
+//       iconBorder: "border-[#C7F1F5]",
+//       accent: "from-[#17A8DB] to-[#5DD9FF]",
+//     },
+//     green: {
+//       text: "text-[#15805F]",
+//       icon: "text-[#15805F]",
+//       iconBg: "bg-[#ECFDF5]",
+//       iconBorder: "border-[#CBEFDB]",
+//       accent: "from-[#16A34A] to-[#34D399]",
+//     },
+//     amber: {
+//       text: "text-[#B7791F]",
+//       icon: "text-[#B7791F]",
+//       iconBg: "bg-[#FFF8E8]",
+//       iconBorder: "border-[#F8E4B0]",
+//       accent: "from-[#F59E0B] to-[#FBBF24]",
+//     },
+//     red: {
+//       text: "text-[#B42318]",
+//       icon: "text-[#B42318]",
+//       iconBg: "bg-[#FFF1F2]",
+//       iconBorder: "border-[#FFD5D9]",
+//       accent: "from-[#DC2626] to-[#F87171]",
+//     },
+//   };
+
+//   const activeTone = toneMap[tone] || toneMap.blue;
+
+//   return (
+//     <Card className="print-safe group flex h-full min-h-0 flex-col justify-between p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#BDD2E8] hover:shadow-[0_18px_42px_rgba(8,31,92,0.12)]">
+//       <div
+//         className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${activeTone.accent}`}
+//       />
+
+//       <div className="flex items-start justify-between gap-3">
+//         <div className="min-w-0">
+//           <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-[#5E738B]">
+//             {label}
+//           </p>
+
+//           <div className="mt-3 flex min-w-0 flex-wrap items-end gap-x-2 gap-y-1">
+//             <h3
+//               className={`max-w-full break-words text-[clamp(18px,1.8vw,22px)] font-medium leading-tight tracking-[-0.02em] ${activeTone.text}`}
+//             >
+//               {value}
+//             </h3>
+
+//             {unit && (
+//               <span className="pb-1 text-[11px] font-medium uppercase text-[#7C91A8]">
+//                 {unit}
+//               </span>
+//             )}
+//           </div>
+//         </div>
+
+//         {Icon && (
+//           <div
+//             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border ${activeTone.iconBorder} ${activeTone.iconBg} ${activeTone.icon}`}
+//           >
+//             <Icon size={20} strokeWidth={2} />
+//           </div>
+//         )}
+//       </div>
+
+//       {trend && (
+//         <div className="mt-3 flex justify-end">
+//           <span className="rounded-full border border-[#CBEFDB] bg-[#ECFDF5] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.08em] text-[#15805F]">
+//             {trend}
+//           </span>
+//         </div>
+//       )}
+//     </Card>
+//   );
+// };
+
+// const TrendChart = ({ rows }) => {
+//   if (!rows.length) {
+//     return (
+//       <div className="flex h-[260px] items-center justify-center text-[11px] text-[#687F99]">
+//         No analytics data found for the selected filters.
+//       </div>
+//     );
+//   }
+
+//   const width = 820;
+//   const height = 230;
+//   const left = 58;
+//   const right = 790;
+//   const top = 24;
+//   const bottom = 180;
+//   const chartWidth = right - left;
+//   const chartHeight = bottom - top;
+
+//   const maxValue = Math.max(
+//     ...rows.flatMap((row) => [row.incomingKw, row.outgoingKw]),
+//     1,
+//   );
+
+//   const step = Math.max(1, Math.ceil(rows.length / 24));
+//   const chartRows = rows.filter(
+//     (_, index) => index % step === 0 || index === rows.length - 1,
+//   );
+
+//   const coordinates = chartRows.map((row, index) => {
+//     const x =
+//       chartRows.length === 1
+//         ? left
+//         : left + (index / (chartRows.length - 1)) * chartWidth;
+
+//     return {
+//       x,
+//       incomingY: bottom - (Number(row.incomingKw) / maxValue) * chartHeight,
+//       outgoingY: bottom - (Number(row.outgoingKw) / maxValue) * chartHeight,
+//       row,
+//     };
+//   });
+
+//   const incomingPoints = coordinates
+//     .map((item) => `${item.x},${item.incomingY}`)
+//     .join(" ");
+
+//   const outgoingPoints = coordinates
+//     .map((item) => `${item.x},${item.outgoingY}`)
+//     .join(" ");
+
+//   const labelStep = Math.max(1, Math.ceil(coordinates.length / 7));
+
+//   return (
+//     <svg
+//       viewBox={`0 0 ${width} ${height}`}
+//       preserveAspectRatio="xMidYMid meet"
+//       className="h-full min-h-[220px] w-full"
+//     >
+//       {[0, 1, 2, 3, 4].map((index) => {
+//         const y = top + index * (chartHeight / 4);
+//         const value = maxValue - index * (maxValue / 4);
+
+//         return (
+//           <React.Fragment key={index}>
+//             <line
+//               x1={left}
+//               x2={right}
+//               y1={y}
+//               y2={y}
+//               stroke="rgba(8,31,92,0.10)"
+//               strokeDasharray="4 4"
+//             />
+//             <text
+//               x={left - 8}
+//               y={y + 3}
+//               textAnchor="end"
+//               fontSize="8"
+//               fill="#8192A7"
+//             >
+//               {Math.round(value)}
+//             </text>
+//           </React.Fragment>
+//         );
+//       })}
+
+//       <polyline
+//         points={incomingPoints}
+//         fill="none"
+//         stroke="#17A8DB"
+//         strokeWidth="3"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//       />
+
+//       <polyline
+//         points={outgoingPoints}
+//         fill="none"
+//         stroke="#06224F"
+//         strokeWidth="3"
+//         strokeLinecap="round"
+//         strokeLinejoin="round"
+//       />
+
+//       {coordinates.map((item, index) => (
+//         <g key={`${item.row.timestamp}-${index}`}>
+//           <circle cx={item.x} cy={item.incomingY} r="3" fill="#17A8DB" />
+//           <circle cx={item.x} cy={item.outgoingY} r="3" fill="#06224F" />
+
+//           <title>
+//             {`${new Date(item.row.timestamp).toLocaleString()} | Incoming ${item.row.incomingKw} kW | Outgoing ${item.row.outgoingKw} kW`}
+//           </title>
+
+//           {(index % labelStep === 0 || index === coordinates.length - 1) && (
+//             <text
+//               x={item.x}
+//               y="205"
+//               textAnchor="middle"
+//               fontSize="8"
+//               fill="#687F99"
+//             >
+//               {new Date(item.row.timestamp).toLocaleDateString(undefined, {
+//                 month: "short",
+//                 day: "2-digit",
+//                 hour: "2-digit",
+//               })}
+//             </text>
+//           )}
+//         </g>
+//       ))}
+
+//       <g transform="translate(610,15)">
+//         <circle cx="0" cy="0" r="4" fill="#17A8DB" />
+//         <text x="10" y="3" fontSize="9" fill="#687F99">
+//           Incoming
+//         </text>
+
+//         <circle cx="90" cy="0" r="4" fill="#06224F" />
+//         <text x="100" y="3" fontSize="9" fill="#687F99">
+//           Outgoing
+//         </text>
+//       </g>
+//     </svg>
+//   );
+// };
+
+// const EnergyBars = ({ rows }) => {
+//   if (!rows.length) {
+//     return null;
+//   }
+
+//   const grouped = rows.reduce((accumulator, row) => {
+//     const key = row.timestamp.slice(0, 13);
+//     accumulator[key] = (accumulator[key] || 0) + Number(row.energyKwh || 0);
+//     return accumulator;
+//   }, {});
+
+//   const points = Object.entries(grouped).slice(-12);
+//   const maxValue = Math.max(...points.map(([, value]) => value), 1);
+
+//   return (
+//     <div className="flex h-full min-h-0 items-end gap-2 pb-1">
+//       {points.map(([label, value]) => (
+//         <div
+//           key={label}
+//           className="flex min-w-0 flex-1 flex-col items-center justify-end"
+//         >
+//           <div className="mb-2 text-[8px] font-semibold text-[#06224F]">
+//             {Math.round(value)}
+//           </div>
+
+//           <div
+//             className="w-full max-w-[30px] rounded-t-[8px] bg-[linear-gradient(180deg,#17A8DB_0%,#1B73C9_100%)] shadow-[0_8px_16px_rgba(37,99,235,0.16)]"
+//             style={{
+//               height: `${Math.max(10, (value / maxValue) * 70)}px`,
+//             }}
+//           />
+
+//           <p className="mt-1.5 truncate text-[7px] text-[#687F99]">
+//             {label.slice(11, 13)}h
+//           </p>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// };
+
+// const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+// const triggerDownload = (blob, filename) => {
+//   const url = URL.createObjectURL(blob);
+//   const link = document.createElement("a");
+
+//   link.href = url;
+//   link.download = filename;
+//   document.body.appendChild(link);
+//   link.click();
+//   link.remove();
+//   URL.revokeObjectURL(url);
+// };
+
+// const getFirstBuildingIdFromScope = (account) => {
+//   const assignedBuildingId = account?.assignedBuildingIds?.[0];
+//   const assignedFloorId = account?.assignedFloorIds?.[0];
+
+//   return (
+//     assignedBuildingId ||
+//     normalizeId(assignedFloorId).split(":")[0] ||
+//     buildings[0]?.id ||
+//     ""
+//   );
+// };
+
+// const getFirstFloorIdFromScope = (account, buildingId) => {
+//   const assignedFloorId = account?.assignedFloorIds?.find((floorId) =>
+//     normalizeId(floorId).startsWith(`${buildingId}:`)
+//   );
+
+//   return assignedFloorId || (buildingId ? `${buildingId}:1` : "");
+// };
+
+// const scaleReadingForZoneCount = (row, zoneCount) => ({
+//   ...row,
+//   incomingKw: Math.max(0, Math.round(Number(row.incomingKw || 0) / zoneCount)),
+//   outgoingKw: Math.max(0, Math.round(Number(row.outgoingKw || 0) / zoneCount)),
+//   energyKwh: Number((Number(row.energyKwh || 0) / zoneCount).toFixed(2)),
+//   energyKvah: Number((Number(row.energyKvah || 0) / zoneCount).toFixed(2)),
+//   current: Number((Number(row.current || 0) / zoneCount).toFixed(2)),
+// });
+
+
+// const roundExcel = (value, digits = 2) => {
+//   const multiplier = 10 ** digits;
+//   return Math.round((Number(value) + Number.EPSILON) * multiplier) / multiplier;
+// };
+
+// const getVoltageUnit = (voltage) =>
+//   Number(voltage) >= 10000 ? "kV" : "V";
+
+// const getDisplayVoltage = (voltage) =>
+//   Number(voltage) >= 10000
+//     ? roundExcel(Number(voltage) / 1000, 2)
+//     : roundExcel(Number(voltage), 2);
+
+// const averageBy = (rows, field) => {
+//   if (!rows.length) return 0;
+//   return (
+//     rows.reduce(
+//       (sum, row) => sum + Number(row[field] || 0),
+//       0,
+//     ) / rows.length
+//   );
+// };
+
+// const sumBy = (rows, field) =>
+//   rows.reduce(
+//     (sum, row) => sum + Number(row[field] || 0),
+//     0,
+//   );
+
+// const startOfWeekMonday = (dateValue) => {
+//   const date = new Date(`${dateValue}T00:00:00`);
+//   const day = date.getDay();
+//   const diff = day === 0 ? -6 : 1 - day;
+//   date.setDate(date.getDate() + diff);
+//   date.setHours(0, 0, 0, 0);
+//   return date;
+// };
+
+// const endOfWeekSunday = (weekStart) => {
+//   const end = new Date(weekStart);
+//   end.setDate(end.getDate() + 6);
+//   return end;
+// };
+
+
+// const buildRealtimeSnapshot = (equipment, latestRow) => {
+//   if (!equipment || !latestRow) return null;
+
+//   const now = new Date();
+//   const hourStart = new Date(now);
+//   hourStart.setMinutes(0, 0, 0);
+
+//   // Frontend-live snapshot based on the latest available reading.
+//   // Replace the values below directly with the realtime BMS/API response later.
+//   const minuteFactor = now.getMinutes() / 60;
+//   const incomingKw = Math.max(
+//     1,
+//     Number(latestRow.incomingKw || 0) * (0.97 + minuteFactor * 0.04),
+//   );
+//   const outgoingKw = Math.max(
+//     1,
+//     Number(latestRow.outgoingKw || 0) * (0.97 + minuteFactor * 0.035),
+//   );
+//   const voltage = Number(latestRow.voltage || equipment.voltageBase || 433);
+//   const powerFactor = Number(latestRow.powerFactor || 0.98);
+//   const current = Number(
+//     (
+//       (outgoingKw * 1000) /
+//       (Math.sqrt(3) * Math.max(voltage, 1) * Math.max(powerFactor, 0.01))
+//     ).toFixed(2),
+//   );
+
+//   const energyKwh = Number(
+//     (((incomingKw + outgoingKw) / 2) * Math.max(minuteFactor, 1 / 60)).toFixed(2),
+//   );
+
+//   const energyKvah = Number(
+//     (energyKwh / Math.max(powerFactor, 0.01)).toFixed(2),
+//   );
+
+//   return {
+//     ...latestRow,
+//     timestamp: `${formatDateKey(hourStart)}T${String(
+//       hourStart.getHours(),
+//     ).padStart(2, "0")}:00:00`,
+//     incomingKw: Number(incomingKw.toFixed(2)),
+//     outgoingKw: Number(outgoingKw.toFixed(2)),
+//     energyKwh,
+//     energyKvah,
+//     voltage,
+//     current,
+//     powerFactor,
+//     status:
+//       outgoingKw / Math.max(incomingKw, 1) < 0.88
+//         ? "Attention"
+//         : "Normal",
+//     realtime: true,
+//   };
+// };
+
+// const mergeRealtimeSnapshot = (rows, selectedEquipment) => {
+//   if (!rows.length) return rows;
+
+//   const equipment = EQUIPMENT_BY_KEY[selectedEquipment];
+//   const sorted = [...rows].sort(
+//     (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+//   );
+
+//   const latest = sorted[sorted.length - 1];
+//   const snapshot = buildRealtimeSnapshot(equipment, latest);
+
+//   if (!snapshot) return sorted;
+
+//   const snapshotHour = snapshot.timestamp.slice(0, 13);
+//   const withoutCurrentHour = sorted.filter(
+//     (row) => row.timestamp.slice(0, 13) !== snapshotHour,
+//   );
+
+//   return [...withoutCurrentHour, snapshot].sort(
+//     (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+//   );
+// };
+
+// const buildHourlyExcelRows = (rows) =>
+//   [...rows]
+//     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+//     .map((row) => ({
+//       Date: row.timestamp.slice(0, 10),
+//       Time: row.timestamp.slice(11, 16),
+//       "kWh": roundExcel(row.energyKwh, 2),
+//       "kVAh": roundExcel(row.energyKvah, 2),
+//       "V / kV": getDisplayVoltage(row.voltage),
+//       PF: roundExcel(row.powerFactor, 2),
+//       Amps: roundExcel(row.current, 2),
+//     }));
+
+// const buildDailyExcelRows = (rows) => {
+//   const groups = rows.reduce((accumulator, row) => {
+//     const key = row.timestamp.slice(0, 10);
+//     if (!accumulator[key]) accumulator[key] = [];
+//     accumulator[key].push(row);
+//     return accumulator;
+//   }, {});
+
+//   return Object.entries(groups)
+//     .sort(([a], [b]) => a.localeCompare(b))
+//     .map(([date, groupRows]) => ({
+//       Date: date,
+//       "kWh": roundExcel(sumBy(groupRows, "energyKwh"), 2),
+//       "kVAh": roundExcel(sumBy(groupRows, "energyKvah"), 2),
+//       "V / kV": getDisplayVoltage(averageBy(groupRows, "voltage")),
+//       PF: roundExcel(averageBy(groupRows, "powerFactor"), 3),
+//       Amps: roundExcel(averageBy(groupRows, "current"), 2),
+//     }));
+// };
+
+// const buildWeeklyExcelRows = (rows) => {
+//   const dailyRows = buildDailyExcelRows(rows);
+//   if (!dailyRows.length) return [];
+
+//   const weekStart = startOfWeekMonday(dailyRows[0].Date);
+//   const result = [];
+
+//   for (let offset = 0; offset < 7; offset += 1) {
+//     const day = new Date(weekStart);
+//     day.setDate(day.getDate() + offset);
+//     const dateKey = formatDateKey(day);
+//     const existing = dailyRows.find((row) => row.Date === dateKey);
+
+//     result.push(
+//       existing || {
+//         Date: dateKey,
+//         "kWh": 0,
+//         "kVAh": 0,
+//         "V / kV": "",
+//         PF: "",
+//         Amps: "",
+//       },
+//     );
+//   }
+
+//   return result;
+// };
+
+// const buildMonthlyExcelRows = (rows) => {
+//   return buildDailyExcelRows(rows);
+// };
+
+// const applyExcelSheetLayout = (worksheet, widths) => {
+//   worksheet["!cols"] = widths.map((width) => ({ wch: width }));
+
+//   if (worksheet["!ref"]) {
+//     worksheet["!autofilter"] = {
+//       ref: worksheet["!ref"],
+//     };
+//   }
+// };
+
+// export default function OverviewPage() {
+//   const currentUser = tempApi.getCurrentAccount();
+//   const canViewReports = accountHasPermission(
+//     currentUser,
+//     USER_PERMISSIONS.ANALYTICS_VIEW
+//   );
+//   const canDownloadReports = accountHasPermission(
+//     currentUser,
+//     USER_PERMISSIONS.DATA_DOWNLOAD
+//   );
+
+//   const [selectedMainFlow, setSelectedMainFlow] = useState("source");
+//   const [selectedEquipment, setSelectedEquipment] = useState(
+//     () => getInnerEquipmentForFlow("source")[0]?.key || "source",
+//   );
+
+//   const [selectedPeriod, setSelectedPeriod] = useState("daily");
+
+//   const [selectedDate, setSelectedDate] = useState(formatDateKey(new Date()));
+
+//   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+
+//   const [fromTime, setFromTime] = useState("00:00");
+//   const [toTime, setToTime] = useState("23:59");
+//   const [customStart, setCustomStart] = useState("");
+//   const [customEnd, setCustomEnd] = useState("");
+//   const [activeWorkspace, setActiveWorkspace] = useState("analytics");
+
+//   const isPrivilegedAccount =
+//     isSuperAdmin(currentUser) ||
+//     currentUser?.systemRole === SYSTEM_ROLES.ADMIN;
+//   const canViewLiveReadings = accountHasPermission(
+//     currentUser,
+//     USER_PERMISSIONS.LIVE_MONITORING_VIEW
+//   );
+//   const accessibleZones = useMemo(() => {
+//     if (!currentUser || isPrivilegedAccount) {
+//       return [];
+//     }
+
+//     const assignedZoneIds = new Set(
+//       (currentUser.assignedZoneIds ?? []).map(normalizeId)
+//     );
+
+//     return getAllZones().filter((zone) =>
+//       assignedZoneIds.has(normalizeId(zone.id))
+//     );
+//   }, [currentUser, isPrivilegedAccount]);
+//   const hasOverviewDataScope =
+//     isPrivilegedAccount || accessibleZones.length > 0;
+
+//   const scopedSourceData = useMemo(() => {
+//     if (!currentUser) {
+//       return [];
+//     }
+
+//     if (!isPrivilegedAccount && accessibleZones.length === 0) {
+//       return [];
+//     }
+
+//     if (!isPrivilegedAccount) {
+//       const scopedRows = ANALYTICS_DATA.flatMap((row) => {
+//         const zonesForRow =
+//           row.equipment === "wing-a" || row.equipment === "wing-b"
+//             ? accessibleZones.filter(
+//                 (zone) =>
+//                   normalizeId(zone.buildingId) === normalizeId(row.equipment)
+//               )
+//             : accessibleZones;
+
+//         if (zonesForRow.length === 0) {
+//           return [];
+//         }
+
+//         return zonesForRow.map((zone) => ({
+//           ...scaleReadingForZoneCount(row, zonesForRow.length),
+//           buildingId: zone.buildingId,
+//           blockId: zone.blockId,
+//           floorId: zone.floorId,
+//           zoneId: zone.id,
+//           clientId: zone.clientId,
+//           systemId: "",
+//         }));
+//       });
+
+//       return filterReadingsForAccount(currentUser, scopedRows);
+//     }
+
+//     const fallbackBuildingId = getFirstBuildingIdFromScope(currentUser);
+
+//     const scopedRows = ANALYTICS_DATA.map((row) => {
+//       const buildingId =
+//         row.equipment === "wing-a" || row.equipment === "wing-b"
+//           ? row.equipment
+//           : fallbackBuildingId;
+//       const floorId = getFirstFloorIdFromScope(currentUser, buildingId);
+//       const blockId = buildingId ? `${buildingId}-core` : "";
+
+//       return {
+//         ...row,
+//         buildingId,
+//         blockId,
+//         floorId,
+//         systemId: "",
+//         clientId: currentUser?.assignedClientIds?.[0] || "",
+//       };
+//     });
+
+//     return filterReadingsForAccount(currentUser, scopedRows);
+//   }, [accessibleZones, currentUser, isPrivilegedAccount]);
+
+//   const innerEquipmentOptions = useMemo(
+//     () => getInnerEquipmentForFlow(selectedMainFlow),
+//     [selectedMainFlow],
+//   );
+
+//   const selectedMainFlowLabel =
+//     selectedMainFlow === "all"
+//       ? "All Flows"
+//       : MAIN_FLOW_OPTIONS.find((item) => item.key === selectedMainFlow)?.label ||
+//         "33kV Source";
+
+//   const isAllInnerEquipment = selectedEquipment === "all";
+
+//   const selectedEquipmentKeys = useMemo(
+//     () =>
+//       isAllInnerEquipment
+//         ? innerEquipmentOptions.map((equipment) => equipment.key)
+//         : [selectedEquipment],
+//     [innerEquipmentOptions, isAllInnerEquipment, selectedEquipment],
+//   );
+
+//   const selectedEquipmentLabel = isAllInnerEquipment
+//     ? selectedMainFlow === "all"
+//       ? "All Equipment"
+//       : `All ${selectedMainFlowLabel}`
+//     : EQUIPMENT_BY_KEY[selectedEquipment]?.label ||
+//       innerEquipmentOptions[0]?.label ||
+//       selectedMainFlowLabel;
+
+//   const selectedFeatureColumns = useMemo(
+//     () =>
+//       getSelectedFeatureColumns(
+//         selectedEquipmentKeys,
+//         innerEquipmentOptions,
+//       ),
+//     [selectedEquipmentKeys, innerEquipmentOptions],
+//   );
+
+//   const filteredData = useMemo(() => {
+//     return scopedSourceData.filter((row) => {
+//       if (!selectedEquipmentKeys.includes(row.equipment)) {
+//         return false;
+//       }
+
+//       const timestamp = new Date(row.timestamp);
+//       const rowDate = row.timestamp.slice(0, 10);
+//       const rowMonth = row.timestamp.slice(0, 7);
+//       const rowTime = row.timestamp.slice(11, 16);
+
+//       if (selectedPeriod === "hourly") {
+//         return (
+//           rowDate === selectedDate && rowTime >= fromTime && rowTime <= toTime
+//         );
+//       }
+
+//       if (selectedPeriod === "daily") {
+//         return rowDate === selectedDate;
+//       }
+
+//       if (selectedPeriod === "weekly") {
+//         const selected = new Date(`${selectedDate}T00:00:00`);
+//         const weekStart = new Date(selected);
+//         weekStart.setDate(selected.getDate() - selected.getDay());
+
+//         const weekEnd = new Date(weekStart);
+//         weekEnd.setDate(weekStart.getDate() + 7);
+
+//         return timestamp >= weekStart && timestamp < weekEnd;
+//       }
+
+//       if (selectedPeriod === "monthly") {
+//         return rowMonth === selectedMonth;
+//       }
+
+//       if (selectedPeriod === "custom") {
+//         const start = customStart ? new Date(customStart) : null;
+//         const end = customEnd ? new Date(customEnd) : null;
+
+//         if (start && timestamp < start) {
+//           return false;
+//         }
+
+//         if (end && timestamp > end) {
+//           return false;
+//         }
+
+//         return true;
+//       }
+
+//       return true;
+//     });
+//   }, [
+//     scopedSourceData,
+//     selectedEquipment,
+//     selectedEquipmentKeys,
+//     selectedPeriod,
+//     selectedDate,
+//     selectedMonth,
+//     fromTime,
+//     toTime,
+//     customStart,
+//     customEnd,
+//   ]);
+
+//   const selectedMonitoringCards = useMemo(() => {
+//     if (selectedEquipment === "all") return [];
+
+//     return getMonitoringFeatureCards(
+//       filteredData,
+//       selectedEquipment,
+//     );
+//   }, [filteredData, selectedEquipment]);
+
+//   const selectedMonitoringStatus = useMemo(() => {
+//     if (selectedEquipment === "all") return "";
+
+//     const latest = getLatestMonitoringRow(
+//       filteredData,
+//       selectedEquipment,
+//     );
+
+//     return latest?.featureData?.status || latest?.status || "";
+//   }, [filteredData, selectedEquipment]);
+
+//   const selectedEquipmentDefinition =
+//     selectedEquipment !== "all"
+//       ? EQUIPMENT_BY_KEY[selectedEquipment]
+//       : null;
+
+//   const selectedUsesElectricalAnalytics =
+//     selectedEquipmentDefinition &&
+//     ![
+//       "Transformer",
+//       "Busduct",
+//       "UPS",
+//       "Water Management",
+//       "Wing",
+//       "HVAC",
+//       "Fire",
+//     ].includes(selectedEquipmentDefinition.group);
+
+//   const summary = useMemo(() => {
+//     if (!filteredData.length) {
+//       return {
+//         totalEnergy: 0,
+//         peakLoad: 0,
+//         averageLoad: 0,
+//         totalLoss: 0,
+//         efficiency: 0,
+//         averageVoltage: 0,
+//         averageCurrent: 0,
+//         averagePowerFactor: 0,
+//       };
+//     }
+
+//     const totalEnergy = filteredData.reduce(
+//       (sum, row) => sum + Number(row.energyKwh || 0),
+//       0,
+//     );
+
+//     const peakLoad = Math.max(
+//       ...filteredData.map((row) => Number(row.incomingKw || 0)),
+//     );
+
+//     const averageLoad =
+//       filteredData.reduce((sum, row) => sum + Number(row.outgoingKw || 0), 0) /
+//       filteredData.length;
+
+//     const totalIncoming = filteredData.reduce(
+//       (sum, row) => sum + Number(row.incomingKw || 0),
+//       0,
+//     );
+
+//     const totalOutgoing = filteredData.reduce(
+//       (sum, row) => sum + Number(row.outgoingKw || 0),
+//       0,
+//     );
+
+//     const averageVoltage =
+//       filteredData.reduce((sum, row) => sum + Number(row.voltage || 0), 0) /
+//       filteredData.length;
+
+//     const averageCurrent =
+//       filteredData.reduce((sum, row) => sum + Number(row.current || 0), 0) /
+//       filteredData.length;
+
+//     const averagePowerFactor =
+//       filteredData.reduce((sum, row) => sum + Number(row.powerFactor || 0), 0) /
+//       filteredData.length;
+
+//     return {
+//       totalEnergy,
+//       peakLoad,
+//       averageLoad,
+//       totalLoss: Math.max(0, totalIncoming - totalOutgoing),
+//       efficiency: totalIncoming > 0 ? (totalOutgoing / totalIncoming) * 100 : 0,
+//       averageVoltage,
+//       averageCurrent,
+//       averagePowerFactor,
+//     };
+//   }, [filteredData]);
+
+//   const downloadCsv = () => {
+//     if (!canDownloadReports) return;
+
+//     const matchesSelectedPeriod = (row) => {
+//       const rowDate = row.timestamp.slice(0, 10);
+//       const rowTime = row.timestamp.slice(11, 16);
+
+//       if (selectedPeriod === "hourly") {
+//         const inTime = rowTime >= fromTime && rowTime <= toTime;
+
+//         if (customStart && customEnd && customStart !== customEnd) {
+//           return rowDate >= customStart && rowDate <= customEnd && inTime;
+//         }
+
+//         return rowDate === selectedDate && inTime;
+//       }
+
+//       if (selectedPeriod === "daily") {
+//         if (customStart && customEnd && customStart !== customEnd) {
+//           return rowDate >= customStart && rowDate <= customEnd;
+//         }
+
+//         return rowDate === selectedDate;
+//       }
+
+//       if (selectedPeriod === "weekly") {
+//         const start = startOfWeekMonday(selectedDate);
+//         const end = endOfWeekSunday(start);
+//         const current = new Date(`${rowDate}T00:00:00`);
+//         return current >= start && current <= end;
+//       }
+
+//       if (selectedPeriod === "monthly") {
+//         return rowDate.slice(0, 7) === selectedMonth;
+//       }
+
+//       if (selectedPeriod === "custom") {
+//         return rowDate >= customStart && rowDate <= customEnd;
+//       }
+
+//       return true;
+//     };
+
+//     const escapeCsv = (value) =>
+//       `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+//     const periodHeading =
+//       selectedPeriod === "hourly"
+//         ? "Time"
+//         : selectedPeriod === "daily"
+//           ? "Date / Time"
+//           : "Date";
+
+//     const buildCsvFlowSection = (flow, equipments) => {
+//       const equipmentKeys = equipments.map((equipment) => equipment.key);
+
+//       const flowRows = scopedSourceData
+//         .filter((row) => equipmentKeys.includes(row.equipment))
+//         .filter(matchesSelectedPeriod);
+
+//       if (!flowRows.length) return [];
+
+//       const exportedRows = buildFlowWiseExportRows(
+//         flowRows,
+//         equipments,
+//         selectedPeriod,
+//       );
+
+//       if (!exportedRows.length) return [];
+
+//       // Collect only the monitoring fields that belong to this flow's
+//       // equipment. No hard-coded kWh/kVAh/Amps columns.
+//       const featureColumnNames = [];
+
+//       equipments.forEach((equipment) => {
+//         getFlowFeatureColumns(equipment).forEach(([heading]) => {
+//           if (!featureColumnNames.includes(heading)) {
+//             featureColumnNames.push(heading);
+//           }
+//         });
+//       });
+
+//       const section = [];
+
+//       // Flow name
+//       section.push([flow.label]);
+
+//       // Equipment + the exact MainOverview monitoring fields
+//       section.push([
+//         "Equipment",
+//         periodHeading,
+//         ...featureColumnNames,
+//       ]);
+
+//       exportedRows.forEach(({ equipment, periodValue, sourceRow }) => {
+//         const equipmentColumns = new Map(
+//           getFlowFeatureColumns(equipment).map(([heading, accessor]) => [
+//             heading,
+//             accessor,
+//           ]),
+//         );
+
+//         section.push([
+//           equipment.label,
+//           periodValue,
+//           ...featureColumnNames.map((heading) => {
+//             const accessor = equipmentColumns.get(heading);
+//             return accessor ? accessor(sourceRow) ?? "" : "";
+//           }),
+//         ]);
+//       });
+
+//       return section;
+//     };
+
+//     let csvRows = [];
+//     let fileLabel = "";
+
+//     // ALL -> flow name, equipment, exact feature data, one blank row,
+//     // next flow, and so on.
+//     if (selectedMainFlow === "all" && isAllInnerEquipment) {
+//       MAIN_FLOW_OPTIONS.forEach((flow) => {
+//         const equipments = getInnerEquipmentForFlow(flow.key);
+
+//         const flowSections = [];
+
+//         equipments.forEach((equipment) => {
+//           const equipmentRows = scopedSourceData
+//             .filter((row) => row.equipment === equipment.key)
+//             .filter(matchesSelectedPeriod);
+
+//           if (!equipmentRows.length) return;
+
+//           const exportedRows = buildFlowWiseExportRows(
+//             equipmentRows,
+//             [equipment],
+//             selectedPeriod,
+//           );
+
+//           if (!exportedRows.length) return;
+
+//           const featureColumns = getFlowFeatureColumns(equipment);
+
+//           // Equipment name first, then only that equipment's monitoring fields.
+//           flowSections.push([equipment.label]);
+//           flowSections.push([
+//             periodHeading,
+//             ...featureColumns.map(([heading]) => heading),
+//           ]);
+
+//           exportedRows.forEach(({ periodValue, sourceRow }) => {
+//             flowSections.push([
+//               periodValue,
+//               ...featureColumns.map(([, accessor]) =>
+//                 accessor(sourceRow) ?? "",
+//               ),
+//             ]);
+//           });
+
+//           // One blank row after every equipment section.
+//           flowSections.push([]);
+//         });
+
+//         if (!flowSections.length) return;
+
+//         // One blank row before each new flow except the first.
+//         if (csvRows.length) {
+//           csvRows.push([]);
+//         }
+
+//         // Flow name clearly separated from its equipment sections.
+//         csvRows.push([flow.label]);
+//         csvRows.push([]);
+
+//         // Remove only the final equipment separator before the next flow.
+//         while (
+//           flowSections.length &&
+//           flowSections[flowSections.length - 1].length === 0
+//         ) {
+//           flowSections.pop();
+//         }
+
+//         csvRows.push(...flowSections);
+//       });
+
+//       fileLabel = "All-Flows";
+//     } else {
+//       const flow =
+//         MAIN_FLOW_OPTIONS.find((item) => item.key === selectedMainFlow) ||
+//         getMainFlowForEquipment(EQUIPMENT_BY_KEY[selectedEquipment]);
+
+//       if (!flow) return;
+
+//       const equipments = isAllInnerEquipment
+//         ? innerEquipmentOptions
+//         : [
+//             EQUIPMENT_BY_KEY[selectedEquipment] ||
+//               innerEquipmentOptions[0],
+//           ].filter(Boolean);
+
+//       csvRows = buildCsvFlowSection(flow, equipments);
+//       fileLabel = isAllInnerEquipment
+//         ? flow.label
+//         : selectedEquipmentLabel;
+//     }
+
+//     if (!csvRows.length) return;
+
+//     const csvLines = csvRows.map((row) =>
+//       row.map(escapeCsv).join(","),
+//     );
+
+//     const blob = new Blob(["\uFEFF" + csvLines.join("\r\n")], {
+//       type: "text/csv;charset=utf-8;",
+//     });
+
+//     const safeName = String(fileLabel || "bms")
+//       .replace(/[^a-zA-Z0-9-_]+/g, "-")
+//       .replace(/^-+|-+$/g, "");
+
+//     const url = URL.createObjectURL(blob);
+//     const anchor = document.createElement("a");
+//     anchor.href = url;
+//     anchor.download = `${safeName || "bms"}-${selectedPeriod}-monitoring.csv`;
+
+//     document.body.appendChild(anchor);
+//     anchor.click();
+//     document.body.removeChild(anchor);
+//     URL.revokeObjectURL(url);
+//   };
+
+//   const downloadJson = () => {
+//     if (!canDownloadReports) return;
+//     const report = {
+//       generatedAt: new Date().toISOString(),
+//       filters: {
+//         equipment: selectedEquipment,
+//         equipmentLabel: selectedEquipmentLabel,
+//         flowGroup: isAllInnerEquipment
+//           ? selectedMainFlowLabel
+//           : EQUIPMENT_BY_KEY[selectedEquipment]?.group || "",
+//         period: selectedPeriod,
+//         selectedDate,
+//         selectedMonth,
+//         fromTime,
+//         toTime,
+//         customStart,
+//         customEnd,
+//       },
+//       summary,
+//       readings: filteredData,
+//     };
+
+//     triggerDownload(
+//       new Blob([JSON.stringify(report, null, 2)], {
+//         type: "application/json",
+//       }),
+//       `power-analytics-${selectedEquipment}-${selectedPeriod}.json`,
+//     );
+//   };
+
+
+//   const downloadExcel = () => {
+//     if (!canDownloadReports) return;
+
+//     const matchesSelectedPeriod = (row) => {
+//       const rowDate = row.timestamp.slice(0, 10);
+//       const rowTime = row.timestamp.slice(11, 16);
+
+//       if (selectedPeriod === "hourly") {
+//         return (
+//           rowDate === selectedDate &&
+//           rowTime >= fromTime &&
+//           rowTime <= toTime
+//         );
+//       }
+
+//       if (selectedPeriod === "daily") {
+//         return rowDate === selectedDate;
+//       }
+
+//       if (selectedPeriod === "weekly") {
+//         const start = startOfWeekMonday(selectedDate);
+//         const end = endOfWeekSunday(start);
+//         const current = new Date(`${rowDate}T00:00:00`);
+//         return current >= start && current <= end;
+//       }
+
+//       if (selectedPeriod === "monthly") {
+//         return rowDate.slice(0, 7) === selectedMonth;
+//       }
+
+//       if (selectedPeriod === "custom") {
+//         if (customStart && new Date(row.timestamp) < new Date(customStart)) {
+//           return false;
+//         }
+
+//         if (customEnd && new Date(row.timestamp) > new Date(customEnd)) {
+//           return false;
+//         }
+
+//         return true;
+//       }
+
+//       return true;
+//     };
+
+//     const reportRange =
+//       selectedPeriod === "monthly"
+//         ? selectedMonth
+//         : selectedPeriod === "weekly"
+//           ? `${formatDateKey(startOfWeekMonday(selectedDate))} to ${formatDateKey(
+//               endOfWeekSunday(startOfWeekMonday(selectedDate)),
+//             )}`
+//           : selectedPeriod === "custom"
+//             ? `${customStart || "Start"} to ${customEnd || "End"}`
+//             : selectedDate;
+
+//     const workbook = XLSX.utils.book_new();
+
+//     const addFlowSheet = (flow, equipments) => {
+//       const equipmentKeys = equipments.map((equipment) => equipment.key);
+//       const flowRows = scopedSourceData
+//         .filter((row) => equipmentKeys.includes(row.equipment))
+//         .filter(matchesSelectedPeriod);
+
+//       if (!flowRows.length) return;
+
+//       const exportedRows = buildFlowWiseExportRows(
+//         flowRows,
+//         equipments,
+//         selectedPeriod,
+//       );
+
+//       if (!exportedRows.length) return;
+
+//       const featureColumnNames = [];
+//       const featureColumnMap = new Map();
+
+//       equipments.forEach((equipment) => {
+//         getFlowFeatureColumns(equipment).forEach(([heading, accessor]) => {
+//           if (!featureColumnMap.has(heading)) {
+//             featureColumnMap.set(heading, accessor);
+//             featureColumnNames.push(heading);
+//           }
+//         });
+//       });
+
+//       const periodHeading =
+//         selectedPeriod === "hourly"
+//           ? "Time"
+//           : selectedPeriod === "daily"
+//             ? "Date / Time"
+//             : "Date";
+
+//       const metadata = [
+//         ["Flow", flow.label],
+//         ["Report", selectedPeriod],
+//         ["Date / Range", reportRange],
+//         ["Equipment Count", equipments.length],
+//         [],
+//       ];
+
+//       const header = [
+//         "Equipment",
+//         periodHeading,
+//         ...featureColumnNames,
+//       ];
+
+//       const body = exportedRows.map(({ equipment, periodValue, sourceRow }) => {
+//         const equipmentColumns = new Map(
+//           getFlowFeatureColumns(equipment).map(([heading, accessor]) => [
+//             heading,
+//             accessor,
+//           ]),
+//         );
+
+//         return [
+//           equipment.label,
+//           periodValue,
+//           ...featureColumnNames.map((heading) => {
+//             const accessor = equipmentColumns.get(heading);
+//             return accessor ? accessor(sourceRow) ?? "" : "";
+//           }),
+//         ];
+//       });
+
+//       const worksheet = XLSX.utils.aoa_to_sheet([
+//         ...metadata,
+//         header,
+//         ...body,
+//       ]);
+
+//       worksheet["!freeze"] = { xSplit: 0, ySplit: 6 };
+//       worksheet["!autofilter"] = {
+//         ref: `A6:${XLSX.utils.encode_col(header.length - 1)}${body.length + 6}`,
+//       };
+
+//       worksheet["!cols"] = header.map((heading, index) => ({
+//         wch:
+//           index === 0
+//             ? 30
+//             : index === 1
+//               ? 18
+//               : Math.max(12, Math.min(22, String(heading).length + 4)),
+//       }));
+
+//       const safeSheetName = flow.label
+//         .replace(/[\\/?*[\]:]/g, "-")
+//         .slice(0, 31);
+
+//       XLSX.utils.book_append_sheet(
+//         workbook,
+//         worksheet,
+//         safeSheetName || "Flow",
+//       );
+//     };
+
+//     if (selectedMainFlow === "all" && isAllInnerEquipment) {
+//       // ALL DATA DOWNLOAD:
+//       // Flow -> equipment -> that equipment's monitoring fields.
+//       // A blank row separates every equipment, so data never appears
+//       // as one continuous mixed table.
+//       const allRows = [];
+
+//       MAIN_FLOW_OPTIONS.forEach((flow) => {
+//         const equipments = getInnerEquipmentForFlow(flow.key);
+//         const flowRows = [];
+
+//         equipments.forEach((equipment) => {
+//           const equipmentRows = scopedSourceData
+//             .filter((row) => row.equipment === equipment.key)
+//             .filter(matchesSelectedPeriod);
+
+//           if (!equipmentRows.length) return;
+
+//           const exportedRows = buildFlowWiseExportRows(
+//             equipmentRows,
+//             [equipment],
+//             selectedPeriod,
+//           );
+
+//           if (!exportedRows.length) return;
+
+//           const featureColumns = getFlowFeatureColumns(equipment);
+
+//           const periodHeading =
+//             selectedPeriod === "hourly"
+//               ? "Time"
+//               : selectedPeriod === "daily"
+//                 ? "Date / Time"
+//                 : "Date";
+
+//           // Equipment title
+//           flowRows.push([equipment.label]);
+
+//           // Only this equipment's actual monitoring features
+//           flowRows.push([
+//             periodHeading,
+//             ...featureColumns.map(([heading]) => heading),
+//           ]);
+
+//           exportedRows.forEach(({ periodValue, sourceRow }) => {
+//             flowRows.push([
+//               periodValue,
+//               ...featureColumns.map(([, accessor]) =>
+//                 accessor(sourceRow) ?? "",
+//               ),
+//             ]);
+//           });
+
+//           // Exactly one blank row between equipment sections.
+//           flowRows.push([]);
+//         });
+
+//         while (
+//           flowRows.length &&
+//           flowRows[flowRows.length - 1].length === 0
+//         ) {
+//           flowRows.pop();
+//         }
+
+//         if (!flowRows.length) return;
+
+//         // Exactly one blank row between flows.
+//         if (allRows.length) {
+//           allRows.push([]);
+//         }
+
+//         allRows.push([flow.label]);
+//         allRows.push([]);
+//         allRows.push(...flowRows);
+//       });
+
+//       if (!allRows.length) return;
+
+//       const worksheet = XLSX.utils.aoa_to_sheet(allRows);
+
+//       const maxColumnCount = allRows.reduce(
+//         (max, row) => Math.max(max, row.length),
+//         0,
+//       );
+
+//       worksheet["!cols"] = Array.from(
+//         { length: Math.max(2, maxColumnCount) },
+//         (_, index) => ({
+//           wch: index === 0 ? 30 : 20,
+//         }),
+//       );
+
+//       XLSX.utils.book_append_sheet(
+//         workbook,
+//         worksheet,
+//         "All Flows",
+//       );
+//     } else {
+//       const flow =
+//         MAIN_FLOW_OPTIONS.find((item) => item.key === selectedMainFlow) ||
+//         getMainFlowForEquipment(EQUIPMENT_BY_KEY[selectedEquipment]);
+
+//       if (!flow) return;
+
+//       const equipments = isAllInnerEquipment
+//         ? innerEquipmentOptions
+//         : [
+//             EQUIPMENT_BY_KEY[selectedEquipment] ||
+//               innerEquipmentOptions[0],
+//           ].filter(Boolean);
+
+//       addFlowSheet(flow, equipments);
+//     }
+
+//     if (!workbook.SheetNames.length) return;
+
+//     const fileLabel =
+//       selectedMainFlow === "all" && isAllInnerEquipment
+//         ? "All-Flows-One-Sheet"
+//         : selectedMainFlowLabel.replace(/[^a-zA-Z0-9-_]+/g, "-");
+
+//     XLSX.writeFile(
+//       workbook,
+//       `${fileLabel || "BMS"}-${selectedPeriod}-flow-wise-monitoring.xlsx`,
+//     );
+//   };
+
+//   const resetFilters = () => {
+//     setSelectedMainFlow("source");
+//     setSelectedEquipment(
+//       getInnerEquipmentForFlow("source")[0]?.key || "source",
+//     );
+//     setSelectedPeriod("daily");
+//     setSelectedDate(formatDateKey(new Date()));
+//     setSelectedMonth(getCurrentMonth());
+//     setFromTime("00:00");
+//     setToTime("23:59");
+//     setCustomStart("");
+//     setCustomEnd("");
+//   };
+
+//   if (!currentUser) {
+//     return (
+//       <main className="flex min-h-screen items-center justify-center bg-[#EEF3F8] px-6 py-10">
+//         <section className="w-full max-w-md border-2 border-red-400 bg-[#081F5C] p-8 text-center text-white">
+//           <h1 className="text-2xl font-black">
+//             User Session Required
+//           </h1>
+
+//           <p className="mt-3 text-sm leading-6 text-blue-200">
+//             Please sign in with an active User account to open the analytical overview.
+//           </p>
+
+//           <button
+//             type="button"
+//             onClick={() => {
+//               tempApi.logout();
+//               window.location.href = "/auth";
+//             }}
+//             className="mt-6 inline-flex items-center justify-center border border-cyan-400 bg-[#004AAD] px-6 py-2.5 text-sm font-black text-white hover:bg-[#003B8A]"
+//           >
+//             Go to Login
+//           </button>
+//         </section>
+//       </main>
+//     );
+//   }
+
+//   if (!hasOverviewDataScope) {
+//     return (
+//       <main className="flex min-h-screen items-center justify-center bg-[#EEF3F8] px-6 py-10">
+//         <section className="w-full max-w-lg border-2 border-amber-400 bg-[#081F5C] p-8 text-center text-white">
+//           <h1 className="text-2xl font-black">No access scope assigned</h1>
+//           <p className="mt-3 text-sm leading-6 text-blue-200">
+//             No Floor or Zone access has been assigned.
+//           </p>
+//           <Link
+//             to="/dashboard"
+//             className="mt-6 inline-flex items-center justify-center border border-cyan-400 bg-[#004AAD] px-6 py-2.5 text-sm font-black text-white hover:bg-[#003B8A]"
+//           >
+//             Back to Dashboard
+//           </Link>
+//         </section>
+//       </main>
+//     );
+//   }
+
+//   return (
+//     <div className="flex min-h-[100dvh] w-full min-w-0 flex-col overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(0,174,239,0.07),transparent_28%),linear-gradient(180deg,#F7FAFD_0%,#EEF5FA_100%)] text-[#06224F]">
+//       <header className="sticky top-0 z-[1000] shrink-0 border-b-4 border-[#004AAD] bg-[#081F5C] px-3 py-2.5 text-white shadow-[0_8px_30px_rgba(3,23,65,0.20)] sm:px-4">
+//         <div className="flex w-full min-w-0 flex-col gap-2.5 xl:flex-row xl:items-center xl:justify-between">
+//           <Link to="/dashboard" className="flex min-w-0 items-center no-underline">
+//             <div className="min-w-0">
+//               <h1 className="truncate text-[clamp(18px,2vw,26px)] font-semibold uppercase leading-none tracking-[0.18em] text-white">
+//                 ARCOT
+//                 <span className="ml-2 text-[#67E8F9]">IIoT 1.0</span>
+//               </h1>
+
+//               <span className="mt-1 hidden text-[9px] font-medium uppercase tracking-[0.35em] text-blue-300 sm:block">
+//                 Industrial Internet of Things
+//               </span>
+//             </div>
+
+//             <div className="ml-5 hidden h-[54px] border-l border-[#004AAD] sm:block" />
+
+//             <img
+//               src={prestigeLogo}
+//               alt="Prestige Group"
+//               className="ml-5 hidden h-[52px] w-[100px] object-contain sm:block"
+//             />
+//           </Link>
+
+//           <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 xl:flex xl:w-auto xl:flex-wrap xl:items-center">
+//             <Link
+//               to="/dashboard"
+//               replace
+//               className="flex h-9 w-full items-center justify-center border border-cyan-400 bg-[#004AAD] px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-[#0058D6] sm:w-auto"
+//             >
+//               Back
+//             </Link>
+
+//             <div className="hidden border border-[#004AAD] bg-[#05143C] px-3 py-1.5 lg:block">
+//               <p className="max-w-[190px] truncate text-[9px] font-bold text-cyan-200">
+//                 {currentUser.name}
+//               </p>
+
+//               <p className="max-w-[190px] truncate text-[7px] uppercase tracking-[0.08em] text-blue-300">
+//                 {currentUser.designation || "USER"} ·{" "}
+//                 {currentUser.companyName || "Assigned Company"}
+//               </p>
+//             </div>
+
+//             <div className="hidden items-center gap-2 border border-[#004AAD] bg-[#05143C] px-3 py-1.5 md:flex">
+//               <span className="h-2 w-2 bg-emerald-400" />
+
+//               <span className="text-[10px] font-bold tracking-[0.15em] text-white">
+//                 BLE Connected
+//               </span>
+//             </div>
+
+//             <button
+//               type="button"
+//               onClick={() => {
+//                 tempApi.logout();
+//                 window.location.href = "/auth";
+//               }}
+//               className="h-9 w-full border border-red-400 bg-red-600 px-4 text-[10px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-red-700 sm:w-auto"
+//             >
+//               Logout
+//             </button>
+//           </div>
+//         </div>
+//       </header>
+
+//       <style>{`
+//         .overview-main-grid {
+//           align-content: start;
+//         }
+
+//         @media (min-width: 1024px) and (max-width: 1535px) {
+//           .overview-main-grid {
+//             gap: 10px;
+//           }
+//         }
+
+//         @media (min-width: 1024px) and (max-height: 820px) {
+//           .overview-main-grid {
+//             padding-top: 10px;
+//             padding-bottom: 14px;
+//           }
+//         }
+
+//         @media (max-width: 639px) {
+//           .overview-main-grid {
+//             padding-left: 10px;
+//             padding-right: 10px;
+//           }
+//         }
+
+//         @media print {
+//           header,
+//           button,
+//           select,
+//           input {
+//             display: none !important;
+//           }
+
+//           body {
+//             background: white !important;
+//           }
+
+//           main {
+//             max-width: none !important;
+//             padding: 0 !important;
+//           }
+
+//           .print-safe {
+//             box-shadow: none !important;
+//             break-inside: avoid;
+//           }
+//         }
+//       `}</style>
+
+//       <main className="overview-main-grid mx-auto grid w-full min-w-0 max-w-[1720px] grid-cols-1 gap-3 overflow-x-hidden px-3 py-3 sm:px-4 md:px-5 lg:px-6 2xl:px-8">
+//         <section className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-12">
+//           <div className="relative col-span-12 min-w-0 overflow-hidden rounded-[15px] border border-[#0A326B] bg-[linear-gradient(135deg,#041A3E_0%,#073066_56%,#0A5E91_100%)] px-4 py-3.5 text-white shadow-[0_18px_42px_rgba(8,31,92,0.22)] xl:col-span-4">
+//             <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10 bg-white/[0.04]" />
+//             <div className="pointer-events-none absolute -bottom-24 left-16 h-52 w-52 rounded-full bg-[#17A8DB]/15 blur-3xl" />
+
+//      <div className="relative flex min-h-[132px] min-w-0 items-center justify-between gap-4 sm:min-h-[148px] xl:h-full">
+//   <div>
+//     <h2 className="text-[22px] font-bold leading-tight tracking-[-0.03em] text-white">
+//       Operational Analytics
+//       <span className="mt-1 block text-[18px] font-semibold text-[#5DD9FF]">
+//         Monitoring Workspace
+//       </span>
+//     </h2>
+
+//     <p className="mt-3 max-w-[320px] truncate text-[9px] font-semibold uppercase tracking-[0.08em] text-blue-200">
+//       {currentUser.companyName || "Assigned Company"} ·{" "}
+//       {currentUser.accessType || "BUILDING"}:{" "}
+//       {currentUser.accessName || "Assigned Access"}
+//     </p>
+//   </div>
+
+//   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border border-white/15 bg-white/[0.08] text-[#5DD9FF] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+//     <BarChart3 size={24} />
+//   </div>
+// </div>
+//           </div>
+
+//        <Card className="print-safe col-span-12 flex min-h-0 min-w-0 flex-col overflow-hidden p-3.5 xl:col-span-8">
+//   <div className="flex shrink-0 min-w-0 flex-col gap-3 border-b border-[#E3ECF5] pb-2.5 xl:flex-row xl:items-center xl:justify-between">
+//     <div className="flex items-center gap-3.5">
+//       <div className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-[#D6E4F2] bg-[#EDF5FA] text-[#1B73C9]">
+//         <Gauge size={21} strokeWidth={2.2} />
+//       </div>
+
+//       <div>
+//         <h3 className="text-[15px] font-bold text-[#06224F]">
+//           Analysis Controls
+//         </h3>
+
+//         <p className="mt-1 text-[10px] leading-relaxed text-[#7D91A7]">
+//           Select the equipment and reporting window.
+//         </p>
+//       </div>
+//     </div>
+
+//     <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 2xl:w-auto 2xl:shrink-0">
+//       <button
+//         type="button"
+//         onClick={downloadCsv}
+//         disabled={!canDownloadReports}
+//         title={
+//           canDownloadReports
+//             ? "Download CSV report"
+//             : "Download permission is not assigned"
+//         }
+//         className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+//           canDownloadReports
+//             ? "bg-[#1B73C9] text-white shadow-[0_8px_18px_rgba(37,99,235,0.2)] hover:bg-[#155FA8]"
+//             : "cursor-not-allowed bg-slate-200 text-slate-400"
+//         }`}
+//       >
+//         <Download size={15} />
+//         CSV
+//       </button>
+
+//       <button
+//         type="button"
+//         onClick={downloadExcel}
+//         disabled={!canDownloadReports}
+//         title={
+//           canDownloadReports
+//             ? "Download flow-wise Excel workbook with equipment-specific monitoring features"
+//             : "Download permission is not assigned"
+//         }
+//         className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] border px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+//           canDownloadReports
+//             ? "border-[#BEE8D4] bg-[#ECFDF5] text-[#15805F] hover:border-[#16A34A] hover:bg-[#DFF8EA]"
+//             : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400"
+//         }`}
+//       >
+//         <Download size={15} />
+//         Realtime Excel
+//       </button>
+
+//       <button
+//         type="button"
+//         onClick={downloadJson}
+//         disabled={!canDownloadReports}
+//         title={
+//           canDownloadReports
+//             ? "Download JSON report"
+//             : "Download permission is not assigned"
+//         }
+//         className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[10px] border px-3 text-[9px] font-bold uppercase tracking-[0.1em] transition ${
+//           canDownloadReports
+//             ? "border-[#CCDCEB] bg-white text-[#416483] hover:border-[#1B73C9] hover:text-[#1B73C9]"
+//             : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400"
+//         }`}
+//       >
+//         <FileJson size={15} />
+//         JSON
+//       </button>
+
+//       <button
+//         type="button"
+//         onClick={() => {
+//           if (canDownloadReports) {
+//             window.print();
+//           }
+//         }}
+//         disabled={!canDownloadReports}
+//         title={
+//           canDownloadReports
+//             ? "Print analytics"
+//             : "Download permission is not assigned"
+//         }
+//         className={`hidden h-10 w-10 items-center justify-center rounded-[10px] border transition sm:flex ${
+//           canDownloadReports
+//             ? "border-[#CCDCEB] bg-white text-[#657B92] hover:border-[#06224F] hover:text-[#06224F]"
+//             : "cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400"
+//         }`}
+//         aria-label="Print analytics"
+//       >
+//         <Printer size={16} />
+//       </button>
+//     </div>
+//   </div>
+
+//   <div className="mt-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
+//     <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//         Main Equipment
+//       </span>
+
+//       <select
+//         aria-label="Select main equipment"
+//         value={selectedMainFlow}
+//         onChange={(event) => {
+//           const nextFlow = event.target.value;
+//           const nextOptions = getInnerEquipmentForFlow(nextFlow);
+
+//           setSelectedMainFlow(nextFlow);
+//           setSelectedEquipment(
+//             nextFlow === "all"
+//               ? "all"
+//               : nextOptions[0]?.key || nextFlow,
+//           );
+//         }}
+//         className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//       >
+//         {MAIN_FLOW_OPTIONS.map((flow) => (
+//           <option key={flow.key} value={flow.key}>
+//             {flow.label}
+//           </option>
+//         ))}
+//         <option value="all">All</option>
+//       </select>
+//     </label>
+
+//     <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//         Inner Equipment
+//       </span>
+
+//       <select
+//         aria-label="Select inner equipment"
+//         value={selectedEquipment}
+//         onChange={(event) => setSelectedEquipment(event.target.value)}
+//         className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//       >
+//         {innerEquipmentOptions.map((equipment) => (
+//           <option key={equipment.key} value={equipment.key}>
+//             {equipment.label}
+//           </option>
+//         ))}
+//         <option value="all">All</option>
+//       </select>
+//     </label>
+
+//     <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//       <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//         Period
+//       </span>
+
+//       <select
+//         aria-label="Select reporting period"
+//         value={selectedPeriod}
+//         onChange={(event) => setSelectedPeriod(event.target.value)}
+//         className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//       >
+//         <option value="hourly">Hourly</option>
+//         <option value="daily">Daily</option>
+//         <option value="weekly">Weekly</option>
+//         <option value="monthly">Monthly</option>
+//         <option value="custom">Custom Range</option>
+//       </select>
+//     </label>
+
+//     {(selectedPeriod === "hourly" || selectedPeriod === "daily" || selectedPeriod === "weekly") && (
+//       <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//         <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//           Date
+//         </span>
+
+//         <input
+//           type="date"
+//           value={selectedDate}
+//           onChange={(event) => setSelectedDate(event.target.value)}
+//           className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//         />
+//       </label>
+//     )}
+
+//     {selectedPeriod === "monthly" && (
+//       <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//         <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//           Month
+//         </span>
+
+//         <input
+//           type="month"
+//           value={selectedMonth}
+//           onChange={(event) => setSelectedMonth(event.target.value)}
+//           className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//         />
+//       </label>
+//     )}
+
+//     {(selectedPeriod === "hourly" || selectedPeriod === "daily") && (
+//       <>
+//         <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//             From
+//           </span>
+
+//           <input
+//             type="time"
+//             value={fromTime}
+//             onChange={(event) => setFromTime(event.target.value)}
+//             className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//           />
+//         </label>
+
+//         <label className="flex w-full min-w-0 max-w-full flex-col gap-1.5">
+//           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//             To
+//           </span>
+
+//           <input
+//             type="time"
+//             value={toTime}
+//             onChange={(event) => setToTime(event.target.value)}
+//             className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//           />
+//         </label>
+//       </>
+//     )}
+
+//     {selectedPeriod === "custom" && (
+//       <>
+//         <label className="flex min-w-0 flex-col gap-1.5 md:col-span-2">
+//           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//             Range Start
+//           </span>
+
+//           <input
+//             type="datetime-local"
+//             value={customStart}
+//             onChange={(event) => setCustomStart(event.target.value)}
+//             className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//           />
+//         </label>
+
+//         <label className="flex min-w-0 flex-col gap-1.5 md:col-span-2">
+//           <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8192A7]">
+//             Range End
+//           </span>
+
+//           <input
+//             type="datetime-local"
+//             value={customEnd}
+//             onChange={(event) => setCustomEnd(event.target.value)}
+//             className="h-10 w-full min-w-0 max-w-full truncate rounded-[9px] border border-[#C6D8E9] bg-[#FAFCFE] px-3 text-[11px] font-semibold text-[#06224F] outline-none transition focus:border-[#1B73C9] focus:ring-2 focus:ring-[#1B73C9]/10"
+//           />
+//         </label>
+//       </>
+//     )}
+
+//     <button
+//       type="button"
+//       onClick={resetFilters}
+//       className="mt-auto inline-flex h-10 w-full min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-[9px] border border-[#C6D8E9] bg-[#F7FAFD] px-3 text-[9px] font-bold uppercase tracking-[0.1em] text-[#657B92] transition hover:border-[#1B73C9] hover:bg-white hover:text-[#1B73C9]"
+//     >
+//       <RefreshCw size={15} />
+//       Reset
+//     </button>
+//   </div>
+// </Card>
+//         </section>
+
+//         <section className="grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+//           {selectedEquipment !== "all" && selectedMonitoringCards.length ? (
+//             <>
+//               {selectedMonitoringCards.slice(0, 5).map((item, index) => (
+//                 <MetricCard
+//                   key={item.label}
+//                   label={item.label}
+//                   value={item.value ?? "-"}
+//                   tone={
+//                     index === 0
+//                       ? "blue"
+//                       : index === 1
+//                         ? "amber"
+//                         : index === 2
+//                           ? "cyan"
+//                           : index === 3
+//                             ? "green"
+//                             : "blue"
+//                   }
+//                   icon={
+//                     item.label.includes("Temp")
+//                       ? Activity
+//                       : item.label.includes("Load") ||
+//                           item.label.includes("Level") ||
+//                           item.label.includes("Battery")
+//                         ? Gauge
+//                         : item.label.includes("Voltage")
+//                           ? Zap
+//                           : item.label.includes("Health") ||
+//                               item.label.includes("Relay")
+//                             ? ShieldCheck
+//                             : BarChart3
+//                   }
+//                   trend={
+//                     index === 0 && selectedMonitoringStatus
+//                       ? selectedMonitoringStatus
+//                       : undefined
+//                   }
+//                 />
+//               ))}
+
+//               {Array.from({
+//                 length: Math.max(
+//                   0,
+//                   5 - selectedMonitoringCards.slice(0, 5).length,
+//                 ),
+//               }).map((_, index) => (
+//                 <MetricCard
+//                   key={`empty-monitor-${index}`}
+//                   label="Monitoring"
+//                   value="-"
+//                   tone="blue"
+//                   icon={Activity}
+//                 />
+//               ))}
+//             </>
+//           ) : (
+//             <>
+//               <MetricCard
+//                 label="Consumed Energy"
+//                 value={summary.totalEnergy.toLocaleString(undefined, {
+//                   maximumFractionDigits: 0,
+//                 })}
+//                 unit="kWh"
+//                 tone="blue"
+//                 icon={Zap}
+//                 trend="Live"
+//               />
+
+//               <MetricCard
+//                 label="Peak Load"
+//                 value={summary.peakLoad.toLocaleString(undefined, {
+//                   maximumFractionDigits: 0,
+//                 })}
+//                 unit="kW"
+//                 tone="amber"
+//                 icon={TrendingUp}
+//               />
+
+//               <MetricCard
+//                 label="Average Load"
+//                 value={summary.averageLoad.toLocaleString(undefined, {
+//                   maximumFractionDigits: 0,
+//                 })}
+//                 unit="kW"
+//                 tone="cyan"
+//                 icon={Activity}
+//               />
+
+//               <MetricCard
+//                 label="Distribution Loss"
+//                 value={summary.totalLoss.toLocaleString(undefined, {
+//                   maximumFractionDigits: 0,
+//                 })}
+//                 unit="kW"
+//                 tone="red"
+//                 icon={ArrowDownToLine}
+//               />
+
+//               <MetricCard
+//                 label="Efficiency"
+//                 value={`${summary.efficiency.toFixed(1)}%`}
+//                 tone="green"
+//                 icon={ShieldCheck}
+//               />
+//             </>
+//           )}
+//         </section>
+
+//         <div className="flex min-h-[42px] flex-col gap-2 rounded-[11px] border border-[#D3E2EF] bg-white px-1.5 py-1.5 shadow-[0_8px_22px_rgba(8,31,92,0.06)] sm:flex-row sm:items-center sm:justify-between">
+//           <div className="grid grid-cols-2 gap-1 sm:flex sm:items-center">
+//             <button
+//               type="button"
+//               onClick={() => setActiveWorkspace("analytics")}
+//               className={`inline-flex items-center gap-2 rounded-[9px] px-4 py-2 text-[8px] font-bold uppercase tracking-[0.1em] transition ${
+//                 activeWorkspace === "analytics"
+//                   ? "bg-[#06224F] text-white shadow-[0_8px_18px_rgba(8,31,92,0.18)]"
+//                   : "text-[#687F99] hover:bg-[#EDF5FA] hover:text-[#06224F]"
+//               }`}
+//             >
+//               <BarChart3 size={13} />
+//               Analytics
+//             </button>
+
+//             <button
+//               type="button"
+//               onClick={() => setActiveWorkspace("readings")}
+//               className={`inline-flex items-center gap-2 rounded-[9px] px-4 py-2 text-[8px] font-bold uppercase tracking-[0.1em] transition ${
+//                 activeWorkspace === "readings"
+//                   ? "bg-[#06224F] text-white shadow-[0_8px_18px_rgba(8,31,92,0.18)]"
+//                   : "text-[#687F99] hover:bg-[#EDF5FA] hover:text-[#06224F]"
+//               }`}
+//             >
+//               <Layers3 size={13} />
+//               Detailed Readings
+//             </button>
+//           </div>
+
+//           <div className="hidden items-center gap-2 pr-2 md:flex">
+//             <span className="h-2 w-2 rounded-full bg-[#16A34A] shadow-[0_0_0_4px_rgba(22,163,74,0.10)]" />
+//             <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#15805F]">
+//               {filteredData.length.toLocaleString()} records loaded
+//             </span>
+//           </div>
+//         </div>
+
+//         {activeWorkspace === "analytics" ? (
+//           canViewReports ? (
+//             <section className="grid min-w-0 grid-cols-1 gap-2.5 xl:grid-cols-12">
+//             <Card className="print-safe flex min-h-[260px] min-w-0 flex-col overflow-hidden p-3.5 xl:col-span-8">
+//               <SectionTitle
+//                 title={`${selectedEquipmentLabel} Load Trend`}
+//                 subtitle="Consumption trend across the selected period."
+//                 icon={TrendingUp}
+//               />
+
+//               <div className="flex min-h-[220px] flex-1 items-stretch rounded-[12px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FAFCFE_0%,#F6FAFE_100%)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] sm:min-h-[280px] lg:min-h-0">
+//                 <TrendChart rows={filteredData} />
+//               </div>
+//             </Card>
+
+//             <div className="grid min-h-0 min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 xl:col-span-4 xl:grid-cols-1">
+//               <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
+//                 <SectionTitle
+//                   title="Electrical Quality"
+//                   subtitle="Average electrical conditions for the selected data."
+//                   icon={Gauge}
+//                 />
+
+//                 <div className="grid min-h-0 flex-1 grid-cols-3 items-stretch gap-2">
+//                   <div className="flex min-h-0 flex-col items-center justify-center rounded-[14px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F5F9FC_100%)] p-2 text-center shadow-[0_8px_18px_rgba(8,31,92,0.05)]">
+//                     <p className="text-[8px] uppercase tracking-[0.1em] text-[#8192A7]">
+//                       Voltage
+//                     </p>
+//                     <h3 className="mt-2 text-[18px] font-semibold text-[#1B73C9]">
+//                       {summary.averageVoltage.toFixed(1)}
+//                     </h3>
+//                     <p className="mt-1 text-[8px] text-[#8192A7]">V</p>
+//                   </div>
+
+//                   <div className="flex min-h-0 flex-col items-center justify-center rounded-[14px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F5F9FC_100%)] p-2 text-center shadow-[0_8px_18px_rgba(8,31,92,0.05)]">
+//                     <p className="text-[8px] uppercase tracking-[0.1em] text-[#8192A7]">
+//                       Current
+//                     </p>
+//                     <h3 className="mt-2 text-[18px] font-semibold text-[#0E86B7]">
+//                       {summary.averageCurrent.toFixed(1)}
+//                     </h3>
+//                     <p className="mt-1 text-[8px] text-[#8192A7]">A</p>
+//                   </div>
+
+//                   <div className="flex min-h-0 flex-col items-center justify-center rounded-[14px] border border-[#D8E6F2] bg-[linear-gradient(180deg,#FFFFFF_0%,#F5F9FC_100%)] p-2 text-center shadow-[0_8px_18px_rgba(8,31,92,0.05)]">
+//                     <p className="text-[8px] uppercase tracking-[0.1em] text-[#8192A7]">
+//                       PF
+//                     </p>
+//                     <h3 className="mt-2 text-[18px] font-semibold text-[#15805F]">
+//                       {summary.averagePowerFactor.toFixed(2)}
+//                     </h3>
+//                     <p className="mt-1 text-[8px] text-[#8192A7]">Average</p>
+//                   </div>
+//                 </div>
+//               </Card>
+
+//               <Card className="print-safe flex min-h-[180px] flex-col p-3 lg:h-full lg:min-h-0">
+//                 <SectionTitle
+//                   title="Hourly Consumption"
+//                   subtitle="Recent energy consumption blocks."
+//                   icon={BarChart3}
+//                 />
+//                 <div className="min-h-0 flex-1 overflow-hidden px-1 pt-1">
+//                   <EnergyBars rows={filteredData} />
+//                 </div>
+//               </Card>
+//             </div>
+//             </section>
+//           ) : (
+//             <RestrictedState
+//               title="Analytics access has not been assigned."
+//               message="Overview remains available. Ask an Admin to assign Analytics access for trend charts and historical analysis."
+//               icon={BarChart3}
+//             />
+//           )
+//         ) : (
+//           canViewLiveReadings ? (
+//             <section className="min-w-0">
+//             <Card className="print-safe flex min-h-[360px] min-w-0 max-w-full flex-col overflow-hidden p-3.5">
+//               <SectionTitle
+//                 title="Detailed Analytical Readings"
+//                 subtitle={`${filteredData.length.toLocaleString()} readings match the selected filters.`}
+//                 icon={Layers3}
+//               />
+
+//               <div className="mt-3 min-w-0 max-w-full space-y-3 overflow-x-hidden lg:hidden">
+//                 {filteredData.length === 0 ? (
+//                   <p className="rounded-[12px] border border-[#E2EBF4] px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]">
+//                     No monitoring readings are available for the assigned Zones.
+//                   </p>
+//                 ) : (
+//                   filteredData.map((row, index) => {
+//                     const loss = Math.max(
+//                       0,
+//                       Number(row.incomingKw) - Number(row.outgoingKw),
+//                     );
+
+//                     return (
+//                       <article
+//                         key={`${row.timestamp}-${row.equipment}-${index}`}
+//                         className="w-full rounded-[12px] border border-[#E2EBF4] bg-white p-3 text-[11px] text-[#5F738D]"
+//                       >
+//                         <div className="flex items-start justify-between gap-3">
+//                           <div className="min-w-0">
+//                             <p className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#1B73C9]">
+//                               {row.flowGroup}
+//                             </p>
+//                             <h3 className="mt-1 break-words text-sm font-black text-[#06224F]">
+//                               {row.equipmentLabel}
+//                             </h3>
+//                             <p className="mt-1 text-[10px]">
+//                               {new Date(row.timestamp).toLocaleString()}
+//                             </p>
+//                           </div>
+//                           <span
+//                             className={`inline-flex shrink-0 rounded-full border px-2.5 py-1 text-[7px] font-bold uppercase tracking-[0.08em] ${
+//                               row.status === "Normal"
+//                                 ? "border-[#BEE8D4] bg-[#E8F5EE] text-[#15805F]"
+//                                 : "border-[#F4D3B2] bg-[#FFF5DD] text-[#B7791F]"
+//                             }`}
+//                           >
+//                             {row.status}
+//                           </span>
+//                         </div>
+
+//                         <dl className="mt-3 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+//                           {getFlowFeatureColumns(
+//                             EQUIPMENT_BY_KEY[row.equipment],
+//                           ).map(([label, accessor]) => {
+//                             const value = accessor(row);
+
+//                             return (
+//                               <div key={label}>
+//                                 <dt className="text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]">
+//                                   {label}
+//                                 </dt>
+//                                 <dd className="mt-1 font-semibold text-[#06224F]">
+//                                   {value ?? "-"}
+//                                 </dd>
+//                               </div>
+//                             );
+//                           })}
+//                         </dl>
+//                       </article>
+//                     );
+//                   })
+//                 )}
+//               </div>
+
+//               <div className="hidden min-h-[320px] min-w-0 max-w-full flex-1 overflow-x-auto overflow-y-auto rounded-[12px] border border-[#E2EBF4] lg:block">
+//                 <table className="w-max min-w-full border-collapse">
+//                   <thead className="sticky top-0 z-10 bg-[#F5F9FC]/95 backdrop-blur">
+//                     <tr className="border-b border-[#D8E6F2]">
+//                       {[
+//                         "Timestamp",
+//                         "Flow",
+//                         "Equipment",
+//                         ...selectedFeatureColumns,
+//                       ].map((heading) => (
+//                         <th
+//                           key={heading}
+//                           className="whitespace-nowrap px-3 py-2.5 text-left text-[8px] font-bold uppercase tracking-[0.1em] text-[#8192A7]"
+//                         >
+//                           {heading}
+//                         </th>
+//                       ))}
+//                     </tr>
+//                   </thead>
+
+//                   <tbody>
+//                     {filteredData.length === 0 ? (
+//                       <tr>
+//                         <td
+//                           colSpan={Math.max(
+//                             3 + selectedFeatureColumns.length,
+//                             3,
+//                           )}
+//                           className="px-3 py-8 text-center text-[11px] font-semibold text-[#687F99]"
+//                         >
+//                           No monitoring readings are available for the assigned Zones.
+//                         </td>
+//                       </tr>
+//                     ) : (
+//                       filteredData.map((row, index) => (
+//                         <tr
+//                           key={`${row.timestamp}-${row.equipment}-${index}`}
+//                           className="border-b border-[#EDF2F7] transition hover:bg-[#F5F9FC] last:border-b-0"
+//                         >
+//                           <td className="whitespace-nowrap px-3 py-2.5 text-[9px] text-[#5F738D]">
+//                             {new Date(row.timestamp).toLocaleString()}
+//                           </td>
+
+//                           <td className="whitespace-nowrap px-3 py-2.5 text-[9px] font-semibold text-[#1B73C9]">
+//                             {row.flowGroup}
+//                           </td>
+
+//                           <td className="whitespace-nowrap px-3 py-2.5 text-[9px] font-semibold text-[#06224F]">
+//                             {row.equipmentLabel}
+//                           </td>
+
+//                           {selectedFeatureColumns.map((heading) => (
+//                             <td
+//                               key={heading}
+//                               className="whitespace-nowrap px-3 py-2.5 text-[9px] text-[#5F738D]"
+//                             >
+//                               {getFeatureValueByHeading(row, heading) || "-"}
+//                             </td>
+//                           ))}
+//                         </tr>
+//                       ))
+//                     )}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             </Card>
+//             </section>
+//           ) : (
+//             <RestrictedState
+//               title="Live monitoring access has not been assigned."
+//               message="Overview remains available. Current readings are hidden until Live Monitoring access is assigned."
+//               icon={Layers3}
+//             />
+//           )
+//         )}
+//       </main>
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
@@ -7158,9 +10417,89 @@ const getMonitoringFeatureCards = (rows, equipmentKey) => {
     }));
 };
 
-const buildFlowWiseExportRows = (rows, equipments, selectedPeriod) => {
+const averageFeatureData = (rows) => {
+  if (!rows.length) return {};
+
+  const latestFeatureData = rows[rows.length - 1]?.featureData || {};
+  const keys = new Set();
+
+  rows.forEach((row) => {
+    Object.keys(row.featureData || {}).forEach((key) => keys.add(key));
+  });
+
+  const result = {};
+
+  keys.forEach((key) => {
+    const values = rows
+      .map((row) => row.featureData?.[key])
+      .filter((value) => value !== undefined && value !== null && value !== "");
+
+    if (!values.length) return;
+
+    const numericValues = values.filter(
+      (value) => typeof value === "number" && Number.isFinite(value),
+    );
+
+    if (numericValues.length === values.length) {
+      result[key] = roundExcel(
+        numericValues.reduce((sum, value) => sum + value, 0) /
+          numericValues.length,
+        2,
+      );
+    } else {
+      result[key] = latestFeatureData[key] ?? values[values.length - 1];
+    }
+  });
+
+  return result;
+};
+
+const aggregateEquipmentRows = (groupRows, equipment) => {
+  if (!groupRows.length) return null;
+
+  const latest = groupRows[groupRows.length - 1];
+
+  const aggregate = {
+    ...latest,
+    featureData: averageFeatureData(groupRows),
+  };
+
+  const electricalGroups = new Set([
+    "33kV Source",
+    "33kV Feeder",
+    "LT Kiosk",
+    "PCC",
+    "PCC 1 Inner",
+    "PCC 2 Inner",
+    "PCC 3 Inner",
+    "PCC 4 Inner",
+    "Raising Main",
+    "DG",
+  ]);
+
+  if (electricalGroups.has(equipment.group)) {
+    aggregate.energyKwh = sumBy(groupRows, "energyKwh");
+    aggregate.energyKvah = sumBy(groupRows, "energyKvah");
+    aggregate.voltage = averageBy(groupRows, "voltage");
+    aggregate.current = averageBy(groupRows, "current");
+    aggregate.powerFactor = averageBy(groupRows, "powerFactor");
+
+    aggregate.featureData = {
+      ...aggregate.featureData,
+      kWh: roundExcel(sumBy(groupRows, "energyKwh"), 2),
+      kVAh: roundExcel(sumBy(groupRows, "energyKvah"), 2),
+      voltage: roundExcel(averageBy(groupRows, "voltage"), 2),
+      amps: roundExcel(averageBy(groupRows, "current"), 2),
+      powerFactor: roundExcel(averageBy(groupRows, "powerFactor"), 3),
+      status: latest.featureData?.status || latest.status || "Live",
+    };
+  }
+
+  return aggregate;
+};
+
+const buildFlowWiseExportRows = (rows, equipments, selectedPeriod, selectedDate, selectedMonth) => {
   const result = [];
-  const isHourlyOutput = selectedPeriod === "hourly" || selectedPeriod === "daily";
 
   equipments.forEach((equipment) => {
     const equipmentRows = rows
@@ -7169,92 +10508,157 @@ const buildFlowWiseExportRows = (rows, equipments, selectedPeriod) => {
 
     if (!equipmentRows.length) return;
 
-    if (isHourlyOutput) {
+    if (selectedPeriod === "hourly") {
       equipmentRows.forEach((row) => {
         result.push({
           equipment,
-          periodValue:
-            selectedPeriod === "hourly"
-              ? row.timestamp.slice(11, 16)
-              : `${row.timestamp.slice(0, 10)} ${row.timestamp.slice(11, 16)}`,
+          periodValue: row.timestamp.slice(11, 16),
           sourceRow: row,
         });
       });
       return;
     }
 
-    const groups = equipmentRows.reduce((acc, row) => {
-      let key = row.timestamp.slice(0, 10);
+    if (selectedPeriod === "daily") {
+      const aggregate = aggregateEquipmentRows(equipmentRows, equipment);
 
-      if (selectedPeriod === "weekly") {
-        key = row.timestamp.slice(0, 10);
-      } else if (selectedPeriod === "monthly") {
-        key = row.timestamp.slice(0, 10);
-      } else if (selectedPeriod === "custom") {
-        key = row.timestamp.slice(0, 10);
-      }
-
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(row);
-      return acc;
-    }, {});
-
-    Object.entries(groups)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .forEach(([key, groupRows]) => {
-        const latest = groupRows[groupRows.length - 1];
-        const aggregate = {
-          ...latest,
-
-          // Preserve the exact latest monitoring payload for this
-          // equipment first. Transformer/Busduct/UPS/Water values are
-          // therefore never replaced by generic electrical fields.
-          featureData: {
-            ...latest.featureData,
-          },
-        };
-
-        // Only electrical equipment uses cumulative/average electrical
-        // metrics for daily/weekly/monthly exports.
-        const electricalGroups = new Set([
-          "33kV Source",
-          "33kV Feeder",
-          "LT Kiosk",
-          "PCC",
-          "PCC 1 Inner",
-          "PCC 2 Inner",
-          "PCC 3 Inner",
-          "PCC 4 Inner",
-          "Raising Main",
-          "DG",
-        ]);
-
-        if (electricalGroups.has(equipment.group)) {
-          aggregate.energyKwh = sumBy(groupRows, "energyKwh");
-          aggregate.energyKvah = sumBy(groupRows, "energyKvah");
-          aggregate.voltage = averageBy(groupRows, "voltage");
-          aggregate.current = averageBy(groupRows, "current");
-          aggregate.powerFactor = averageBy(groupRows, "powerFactor");
-
-          aggregate.featureData = {
-            ...aggregate.featureData,
-            kWh: roundExcel(sumBy(groupRows, "energyKwh"), 2),
-            kVAh: roundExcel(sumBy(groupRows, "energyKvah"), 2),
-            voltage: roundExcel(averageBy(groupRows, "voltage"), 2),
-            amps: roundExcel(averageBy(groupRows, "current"), 2),
-            powerFactor: roundExcel(
-              averageBy(groupRows, "powerFactor"),
-              3,
-            ),
-          };
-        }
-
+      if (aggregate) {
         result.push({
           equipment,
-          periodValue: key,
+          periodValue: equipmentRows[0].timestamp.slice(0, 10),
           sourceRow: aggregate,
         });
-      });
+      }
+      return;
+    }
+
+    if (selectedPeriod === "weekly") {
+      // WEEKLY REPORT:
+      // Exactly 7 date rows, ending on selectedDate.
+      const endDate = new Date(`${selectedDate}T00:00:00`);
+      const startDate = new Date(endDate);
+      startDate.setDate(endDate.getDate() - 6);
+
+      for (let offset = 0; offset < 7; offset += 1) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + offset);
+        const dateKey = formatDateKey(currentDate);
+
+        const dayRows = equipmentRows.filter(
+          (row) => row.timestamp.slice(0, 10) === dateKey,
+        );
+
+        if (dayRows.length) {
+          const aggregate = aggregateEquipmentRows(dayRows, equipment);
+
+          result.push({
+            equipment,
+            periodValue: dateKey,
+            sourceRow: aggregate,
+          });
+        } else {
+          // Keep the date row present without inventing monitoring data.
+          result.push({
+            equipment,
+            periodValue: dateKey,
+            sourceRow: {
+              ...equipmentRows[equipmentRows.length - 1],
+              timestamp: `${dateKey}T00:00:00`,
+              energyKwh: 0,
+              energyKvah: 0,
+              voltage: 0,
+              current: 0,
+              powerFactor: 0,
+              featureData: {},
+              status: "",
+            },
+          });
+        }
+      }
+
+      return;
+    }
+
+    if (selectedPeriod === "monthly") {
+      // MONTHLY REPORT:
+      // One row for every calendar day of selectedMonth, followed by MONTH TOTAL.
+      const [yearText, monthText] = selectedMonth.split("-");
+      const year = Number(yearText);
+      const monthIndex = Number(monthText) - 1;
+      const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const dateKey = `${yearText}-${monthText}-${String(day).padStart(2, "0")}`;
+
+        const dayRows = equipmentRows.filter(
+          (row) => row.timestamp.slice(0, 10) === dateKey,
+        );
+
+        if (dayRows.length) {
+          const aggregate = aggregateEquipmentRows(dayRows, equipment);
+
+          result.push({
+            equipment,
+            periodValue: dateKey,
+            sourceRow: aggregate,
+          });
+        } else {
+          // Preserve the calendar row, but do not fabricate consumption.
+          result.push({
+            equipment,
+            periodValue: dateKey,
+            sourceRow: {
+              ...equipmentRows[equipmentRows.length - 1],
+              timestamp: `${dateKey}T00:00:00`,
+              energyKwh: 0,
+              energyKvah: 0,
+              voltage: 0,
+              current: 0,
+              powerFactor: 0,
+              featureData: {},
+              status: "",
+            },
+          });
+        }
+      }
+
+      const monthlyAggregate = aggregateEquipmentRows(
+        equipmentRows,
+        equipment,
+      );
+
+      if (monthlyAggregate) {
+        result.push({
+          equipment,
+          periodValue: "MONTH TOTAL",
+          sourceRow: monthlyAggregate,
+        });
+      }
+
+      return;
+    }
+
+    if (selectedPeriod === "custom") {
+      const dailyGroups = equipmentRows.reduce((accumulator, row) => {
+        const dateKey = row.timestamp.slice(0, 10);
+        if (!accumulator[dateKey]) accumulator[dateKey] = [];
+        accumulator[dateKey].push(row);
+        return accumulator;
+      }, {});
+
+      Object.entries(dailyGroups)
+        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+        .forEach(([dateKey, dayRows]) => {
+          const aggregate = aggregateEquipmentRows(dayRows, equipment);
+          if (!aggregate) return;
+
+          result.push({
+            equipment,
+            periodValue: dateKey,
+            sourceRow: aggregate,
+          });
+        });
+    }
   });
 
   return result;
@@ -8106,14 +11510,11 @@ export default function OverviewPage() {
       }
 
       if (selectedPeriod === "weekly") {
-        const selected = new Date(`${selectedDate}T00:00:00`);
-        const weekStart = new Date(selected);
-        weekStart.setDate(selected.getDate() - selected.getDay());
+        const weekEnd = new Date(`${selectedDate}T23:59:59`);
+        const weekStart = new Date(`${selectedDate}T00:00:00`);
+        weekStart.setDate(weekStart.getDate() - 6);
 
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 7);
-
-        return timestamp >= weekStart && timestamp < weekEnd;
+        return timestamp >= weekStart && timestamp <= weekEnd;
       }
 
       if (selectedPeriod === "monthly") {
@@ -8274,8 +11675,13 @@ export default function OverviewPage() {
       }
 
       if (selectedPeriod === "weekly") {
-        const start = startOfWeekMonday(selectedDate);
-        const end = endOfWeekSunday(start);
+        // Weekly report = exactly 7 calendar days ending on selectedDate.
+        // This avoids a "weekly" report showing only one day when the
+        // selected date is at the beginning of the current week.
+        const end = new Date(`${selectedDate}T00:00:00`);
+        const start = new Date(end);
+        start.setDate(end.getDate() - 6);
+
         const current = new Date(`${rowDate}T00:00:00`);
         return current >= start && current <= end;
       }
@@ -8295,11 +11701,7 @@ export default function OverviewPage() {
       `"${String(value ?? "").replace(/"/g, '""')}"`;
 
     const periodHeading =
-      selectedPeriod === "hourly"
-        ? "Time"
-        : selectedPeriod === "daily"
-          ? "Date / Time"
-          : "Date";
+      selectedPeriod === "hourly" ? "Time" : "Date";
 
     const buildCsvFlowSection = (flow, equipments) => {
       const equipmentKeys = equipments.map((equipment) => equipment.key);
@@ -8314,6 +11716,8 @@ export default function OverviewPage() {
         flowRows,
         equipments,
         selectedPeriod,
+        selectedDate,
+        selectedMonth,
       );
 
       if (!exportedRows.length) return [];
@@ -8385,6 +11789,8 @@ export default function OverviewPage() {
             equipmentRows,
             [equipment],
             selectedPeriod,
+            selectedDate,
+            selectedMonth,
           );
 
           if (!exportedRows.length) return;
@@ -8530,8 +11936,13 @@ export default function OverviewPage() {
       }
 
       if (selectedPeriod === "weekly") {
-        const start = startOfWeekMonday(selectedDate);
-        const end = endOfWeekSunday(start);
+        // Weekly report = exactly 7 calendar days ending on selectedDate.
+        // This avoids a "weekly" report showing only one day when the
+        // selected date is at the beginning of the current week.
+        const end = new Date(`${selectedDate}T00:00:00`);
+        const start = new Date(end);
+        start.setDate(end.getDate() - 6);
+
         const current = new Date(`${rowDate}T00:00:00`);
         return current >= start && current <= end;
       }
@@ -8559,9 +11970,12 @@ export default function OverviewPage() {
       selectedPeriod === "monthly"
         ? selectedMonth
         : selectedPeriod === "weekly"
-          ? `${formatDateKey(startOfWeekMonday(selectedDate))} to ${formatDateKey(
-              endOfWeekSunday(startOfWeekMonday(selectedDate)),
-            )}`
+          ? (() => {
+              const end = new Date(`${selectedDate}T00:00:00`);
+              const start = new Date(end);
+              start.setDate(end.getDate() - 6);
+              return `${formatDateKey(start)} to ${formatDateKey(end)}`;
+            })()
           : selectedPeriod === "custom"
             ? `${customStart || "Start"} to ${customEnd || "End"}`
             : selectedDate;
@@ -8580,6 +11994,8 @@ export default function OverviewPage() {
         flowRows,
         equipments,
         selectedPeriod,
+        selectedDate,
+        selectedMonth,
       );
 
       if (!exportedRows.length) return;
@@ -8597,11 +12013,7 @@ export default function OverviewPage() {
       });
 
       const periodHeading =
-        selectedPeriod === "hourly"
-          ? "Time"
-          : selectedPeriod === "daily"
-            ? "Date / Time"
-            : "Date";
+        selectedPeriod === "hourly" ? "Time" : "Date";
 
       const metadata = [
         ["Flow", flow.label],
@@ -8688,6 +12100,8 @@ export default function OverviewPage() {
             equipmentRows,
             [equipment],
             selectedPeriod,
+            selectedDate,
+            selectedMonth,
           );
 
           if (!exportedRows.length) return;
@@ -8695,11 +12109,7 @@ export default function OverviewPage() {
           const featureColumns = getFlowFeatureColumns(equipment);
 
           const periodHeading =
-            selectedPeriod === "hourly"
-              ? "Time"
-              : selectedPeriod === "daily"
-                ? "Date / Time"
-                : "Date";
+            selectedPeriod === "hourly" ? "Time" : "Date";
 
           // Equipment title
           flowRows.push([equipment.label]);
